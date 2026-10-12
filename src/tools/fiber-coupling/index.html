@@ -43,6 +43,13 @@
     label{font-size:12px;font-weight:700;color:#3a5568}
     input,select{width:100%;min-width:0;border:1px solid #b9ccd5;border-radius:8px;background:#fff;color:var(--ink);padding:8px 10px}
     input:focus,select:focus{border-color:var(--teal)}
+    .sliderhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .sliderhead output{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:#075f77;background:#eaf5f5;padding:3px 8px;border-radius:6px;white-space:nowrap}
+    input[type="range"]{accent-color:var(--teal);padding:0;border:0;background:transparent;height:28px;cursor:pointer}
+    .sliderscale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-4px}
+    .directionsettings{margin-top:12px}
+    .directionsettings summary{font-size:12px;font-weight:700;color:#145267;cursor:pointer}
+    .directionsettings .fields{margin-top:12px}
     .hint{font-size:12px;color:var(--muted);margin:9px 0 0}
     .divider{height:1px;background:var(--line)}
     .result{display:grid;gap:18px}
@@ -128,13 +135,40 @@
         <fieldset>
           <legend>02　對位偏差</legend>
           <div class="fields">
-            <div class="field"><label for="offsetR">橫向位移 r（µm）</label><input id="offsetR" type="number" min="0" step="0.1" value="0"></div>
-            <div class="field"><label for="offsetAxis">位移方向</label><select id="offsetAxis"><option value="x">沿 x 軸</option><option value="y">沿 y 軸</option></select></div>
-            <div class="field"><label for="gap">束腰至接收面 z（µm）</label><input id="gap" type="number" step="1" value="0"></div>
-            <div class="field"><label for="tiltX">傾角 θₓ（°）</label><input id="tiltX" type="number" step="0.1" value="0"></div>
-            <div class="field"><label for="tiltY">傾角 θᵧ（°）</label><input id="tiltY" type="number" step="0.1" value="0"></div>
+            <div class="field full">
+              <div class="sliderhead"><label for="offsetR">橫向位移大小 r</label><output id="offsetRValue" for="offsetR">0.00 µm</output></div>
+              <input id="offsetR" type="range" min="0" max="20" step="0.01" value="0" aria-describedby="radialDefinition">
+              <div class="sliderscale"><span>0 µm</span><span>20 µm</span></div>
+            </div>
+            <div class="field full">
+              <div class="sliderhead"><label for="gap">軸向間距 z</label><output id="gapValue" for="gap">0.0 µm</output></div>
+              <input id="gap" type="range" min="-500" max="500" step="0.5" value="0">
+              <div class="sliderscale"><span>−500 µm</span><span>+500 µm</span></div>
+            </div>
+            <div class="field full">
+              <div class="sliderhead"><label for="tilt">相對傾角 θ</label><output id="tiltValue" for="tilt">0.00°</output></div>
+              <input id="tilt" type="range" min="0" max="10" step="0.01" value="0">
+              <div class="sliderscale"><span>0°</span><span>10°</span></div>
+            </div>
           </div>
-          <p class="hint">r ≥ 0 是接收面上的光束中心位移長度。圓形模場與方向無關；橢圓模場須選 x 或 y 方向。θ 為間隙介質內的相對角度。</p>
+          <p class="hint" id="radialDefinition"><strong>r² = x² + y²，r = √(x² + y²)</strong>，是兩模場中心的橫向距離。θ 是兩光軸的相對傾角大小，使用間隙介質內的角度。</p>
+          <details class="directionsettings">
+            <summary>進階：位移與傾斜的方位</summary>
+            <div class="fields">
+              <div class="field full">
+                <div class="sliderhead"><label for="offsetAzimuth">位移方位 α</label><output id="offsetAzimuthValue" for="offsetAzimuth">0°</output></div>
+                <input id="offsetAzimuth" type="range" min="0" max="360" step="1" value="0">
+                <div class="sliderscale"><span>0° · +x</span><span>180° · −x</span><span>360° · +x</span></div>
+              </div>
+              <div class="field full">
+                <div class="sliderhead"><label for="tiltAzimuth">傾斜方位 γ</label><output id="tiltAzimuthValue" for="tiltAzimuth">0°</output></div>
+                <input id="tiltAzimuth" type="range" min="0" max="360" step="1" value="0">
+                <div class="sliderscale"><span>0° · +x</span><span>180° · −x</span><span>360° · +x</span></div>
+              </div>
+            </div>
+            <p class="hint">方位由 +x 朝 +y 量起。橢圓模場及 z、θ 的交互作用需要方向；r 和 θ 本身都是大小。預設位移與傾斜同向。</p>
+            <p class="hint" id="vectorReadout">—</p>
+          </details>
         </fieldset>
         <div class="divider"></div>
         <fieldset>
@@ -181,21 +215,20 @@
             <table aria-label="橫向位移容差">
               <thead><tr><th id="radialAxisLabel">位移 r</th><th>額外 1 dB 的 r</th><th>半功率的 r</th><th>最佳 r</th></tr></thead>
               <tbody>
-                <tr><td id="radialDirection">沿 x 軸</td><td id="r1">—</td><td id="r3">—</td><td id="ropt">—</td></tr>
+                <tr><td id="radialDirection">r</td><td id="r1">—</td><td id="r3">—</td><td id="ropt">—</td></tr>
               </tbody>
             </table>
           </div>
-          <p class="hint">橫向門檻固定目前 z、θ，從 r ≥ 0 的局部最佳值起算；其他軸位移為 0。半功率相當於約 3.01 dB。</p>
+          <p class="hint">橫向門檻固定目前 z、θ 與方位，從 r ≥ 0 的局部最佳值起算。半功率相當於約 3.01 dB。</p>
           <div class="tablewrap">
             <table aria-label="傾角容差">
-              <thead><tr><th>傾斜方向</th><th>1 dB 角度</th><th>半功率角度</th></tr></thead>
+              <thead><tr><th>相對傾角 θ</th><th>1 dB 角度</th><th>半功率角度</th></tr></thead>
               <tbody>
-                <tr><td>θₓ</td><td id="tiltX1">—</td><td id="tiltX3">—</td></tr>
-                <tr><td>θᵧ</td><td id="tiltY1">—</td><td id="tiltY3">—</td></tr>
+                <tr><td id="tiltDirection">θ</td><td id="tilt1">—</td><td id="tilt3">—</td></tr>
               </tbody>
             </table>
           </div>
-          <p class="hint">傾角門檻以 z = 0、r = 0、另一傾角 = 0 為基準，並用各軸實際模場半徑計算。</p>
+          <p class="hint">傾角門檻以 z = r = 0 為基準，沿目前傾斜方位 γ，並用實際模場半徑計算。</p>
         </div>
         <div class="chartgrid">
           <div class="panel">
@@ -227,9 +260,9 @@
       <h2>核心公式：網站與論文如何對上</h2>
       <p>在同一平面、沒有傾角與波前曲率，且兩端模場均為圓形時，橫向位移長度 r 的功率耦合效率為：</p>
       <div class="formula">η(r) = [2w<sub>b</sub>w<sub>f</sub> / (w<sub>b</sub>² + w<sub>f</sub>²)]² · exp[−2r² / (w<sub>b</sub>² + w<sub>f</sub>²)]</div>
-      <p class="small muted" style="margin-top:9px">這就是 Photonica 的主公式，也是 Wang–Su 論文 Eq. 1–3 的圓對稱特例。橢圓模場則須指定 r 沿 x 或 y，並將兩軸的重疊效率相乘。</p>
+      <p class="small muted" style="margin-top:9px">r² = x² + y²。這就是 Photonica 的主公式，也是 Wang–Su 論文 Eq. 1–3 的圓對稱特例。圓形模場的單獨位移損失只取決於 r；橢圓模場另以方位 α 決定 x = r cosα、y = r sinα，再將兩軸的重疊效率相乘。</p>
       <div class="formula">相同圓形模場且 r = z = 0：η(θ)/η(0) = exp[−(πnwθ/λ)²]</div>
-      <p class="small muted" style="margin-top:9px">若兩模場半徑不等，單軸傾角的指數改為 −(k²θ²/2)·w<sub>b</sub>²w<sub>f</sub>²/(w<sub>b</sub>²+w<sub>f</sub>²)，k=2πn/λ。上方角度容差表用此式計算。</p>
+      <p class="small muted" style="margin-top:9px">θ 是總傾角大小；近軸模型以 θₓ = θ cosγ、θᵧ = θ sinγ 換算分量，因此 θ² = θₓ² + θᵧ²。若兩模場半徑不等，各軸傾角的指數為 −(k²θ<sub>j</sub>²/2)·w<sub>bj</sub>²w<sub>fj</sub>²/(w<sub>bj</sub>²+w<sub>fj</sub>²)，k=2πn/λ；兩軸相乘得到總效率。</p>
       <div class="formula">論文 Eq. (6)：η(z) = 4Z₁Z₂ / [(Z₁ + Z₂)² + z²]，Zᵢ = πnwᵢ²/λ</div>
       <p class="small muted" style="margin-top:9px">此式要求同軸圓形模場、零傾角，z 為兩束腰的軸向距離；本頁假設接收模場束腰在光纖端面。論文在空氣中令 n = 1。當 w₁ = w₂ = w 時，η(z)/η(0) = [1 + (λz/2πnw²)²]<sup>−1</sup>；若 w₁ ≠ w₂，z = 0 的效率本身也會低於 100%。</p>
       <details style="margin:13px 0 17px">
@@ -271,11 +304,11 @@
   <script>
   (function(){
     "use strict";
-    var ids=["lambda","medium","beamX","beamY","recvX","recvY","offsetR","offsetAxis","gap","tiltX","tiltY","channels","pitchFau","pitchPic","anchor","yaw"];
+    var ids=["lambda","medium","beamX","beamY","recvX","recvY","offsetR","gap","tilt","offsetAzimuth","tiltAzimuth","channels","pitchFau","pitchPic","anchor","yaw"];
     var el={}; ids.forEach(function(id){el[id]=document.getElementById(id);});
-    var out={}; ["baseEta","currentEta","extraLoss","status","mfdReadout","axialReadout","axialChartContext","radialAxisLabel","radialDirection","r1","r3","ropt","tiltX1","tiltX3","tiltY1","tiltY3","radialChartContext","arraySummary","channelRows","qaStatus"].forEach(function(id){out[id]=document.getElementById(id);});
+    var out={}; ["baseEta","currentEta","extraLoss","status","mfdReadout","axialReadout","axialChartContext","radialAxisLabel","radialDirection","r1","r3","ropt","tilt1","tilt3","tiltDirection","offsetRValue","gapValue","tiltValue","offsetAzimuthValue","tiltAzimuthValue","vectorReadout","radialChartContext","arraySummary","channelRows","qaStatus"].forEach(function(id){out[id]=document.getElementById(id);});
     var canvas=document.getElementById("radialChart"), axialCanvas=document.getElementById("axialChart"), chart=document.getElementById("arrayChart");
-    var defaults={lambda:1550,medium:1,beamX:5.2,beamY:5.2,recvX:10.4,recvY:10.4,offsetR:0,offsetAxis:"x",gap:0,tiltX:0,tiltY:0,channels:16,pitchFau:127,pitchPic:127,anchor:"center",yaw:0};
+    var defaults={lambda:1550,medium:1,beamX:5.2,beamY:5.2,recvX:10.4,recvY:10.4,offsetR:0,gap:0,tilt:0,offsetAzimuth:0,tiltAzimuth:0,channels:16,pitchFau:127,pitchPic:127,anchor:"center",yaw:0};
     var presets={
       matched:{},
       mismatch:{recvX:4,recvY:4},
@@ -298,19 +331,19 @@
     }
     function read(){
       var p={};
-      ids.forEach(function(id){p[id]=(id==="anchor"||id==="offsetAxis")?el[id].value:Number(el[id].value);});
+      ids.forEach(function(id){p[id]=id==="anchor"?el[id].value:Number(el[id].value);});
       var positive=["lambda","medium","beamX","beamY","recvX","recvY","channels","pitchFau","pitchPic"];
-      if(ids.some(function(id){return id!=="anchor"&&id!=="offsetAxis"&&!Number.isFinite(p[id]);})) throw Error("請輸入有效數字。");
+      if(ids.some(function(id){return id!=="anchor"&&!Number.isFinite(p[id]);})) throw Error("請輸入有效數字。");
       if(positive.some(function(id){return p[id]<=0;})) throw Error("波長、模場、折射率、通道數與節距都必須大於 0。");
       if(p.offsetR<0) throw Error("位移 r 必須大於或等於 0。");
       if(p.channels<1||p.channels>96||!Number.isInteger(p.channels)) throw Error("通道數請設為 1–96 的整數。");
-      if(Math.abs(p.tiltX)>45||Math.abs(p.tiltY)>45) throw Error("傾角超過 45°，已超出本模型的使用範圍。");
+      if(p.tilt<0||p.tilt>45) throw Error("傾角大小須介於 0° 與 45°。");
       return p;
     }
     function joint(p,x,y){
-      var lambda=p.lambda/1000;
-      var ax=axis(p.beamX,p.recvX/2,p.gap,lambda,p.medium,x,p.tiltX);
-      var ay=axis(p.beamY,p.recvY/2,p.gap,lambda,p.medium,y,p.tiltY);
+      var lambda=p.lambda/1000,t=tiltComponents(p);
+      var ax=axis(p.beamX,p.recvX/2,p.gap,lambda,p.medium,x,t.x);
+      var ay=axis(p.beamY,p.recvY/2,p.gap,lambda,p.medium,y,t.y);
       return {eta:Math.min(1,ax.eta*ay.eta),ax:ax,ay:ay};
     }
     function axialOnly(p,z){
@@ -330,11 +363,25 @@
       }
       return (lo+hi)/2;
     }
-    function fixed(n,d){return Number.isFinite(n)?n.toFixed(d):"—";}
+    function fixed(n,d){return Number.isFinite(n)?(Math.abs(n)<.5*Math.pow(10,-d)?0:n).toFixed(d):"—";}
     function pct(v){return (100*v).toFixed(v<.01?3:1)+"%";}
     function loss(v){return v>0?-10*Math.log10(v):Infinity;}
     function tolerance(beta,half){return Math.sqrt((half?Math.log(2):Math.log(10)/10)/(2*beta));}
-    function radialOffset(p){return p.offsetAxis==="x"?{x:p.offsetR,y:0}:{x:0,y:p.offsetR};}
+    function directionVector(angle){return {x:Math.cos(rad(angle)),y:Math.sin(rad(angle))};}
+    function radialOffset(p,r){
+      var u=directionVector(p.offsetAzimuth),m=r===undefined?p.offsetR:r;
+      return {x:m*u.x,y:m*u.y};
+    }
+    function tiltComponents(p){
+      var u=directionVector(p.tiltAzimuth);
+      return {x:p.tilt*u.x,y:p.tilt*u.y};
+    }
+    function radialProfile(p,current){
+      var u=directionVector(p.offsetAzimuth);
+      var beta=current.ax.beta*u.x*u.x+current.ay.beta*u.y*u.y;
+      var opt=(current.ax.beta*current.ax.opt*u.x+current.ay.beta*current.ay.opt*u.y)/beta;
+      return {beta:beta,opt:opt};
+    }
     function radialBoundary(beta,opt,half){
       var best=Math.max(0,opt);
       var D=half?Math.log(2):Math.log(10)/10;
@@ -346,11 +393,25 @@
       var D=half?Math.log(2):Math.log(10)/10;
       return Math.sqrt(D/A)*180/Math.PI;
     }
+    function angularLimit(p,half){
+      var u=directionVector(p.tiltAzimuth),lambda=p.lambda/1000;
+      var tx=angularTolerance(p.beamX,p.recvX/2,lambda,p.medium,half);
+      var ty=angularTolerance(p.beamY,p.recvY/2,lambda,p.medium,half);
+      return 1/Math.sqrt(u.x*u.x/(tx*tx)+u.y*u.y/(ty*ty));
+    }
     function update(){
       var p;
       try{p=read();}catch(e){out.status.className="status error";out.status.textContent=e.message;return;}
-      var origin=Object.assign({},p,{gap:0,offsetR:0,tiltX:0,tiltY:0});
+      var origin=Object.assign({},p,{gap:0,offsetR:0,tilt:0});
       var offset=radialOffset(p);
+      var tilt=tiltComponents(p);
+      out.offsetRValue.textContent=fixed(p.offsetR,2)+" µm";
+      out.gapValue.textContent=fixed(p.gap,1)+" µm";
+      out.tiltValue.textContent=fixed(p.tilt,2)+"°";
+      out.offsetAzimuthValue.textContent=fixed(p.offsetAzimuth,0)+"°";
+      out.tiltAzimuthValue.textContent=fixed(p.tiltAzimuth,0)+"°";
+      ["offsetR","gap","tilt","offsetAzimuth","tiltAzimuth"].forEach(function(id){el[id].setAttribute("aria-valuetext",out[id+"Value"].textContent);});
+      out.vectorReadout.textContent="x = "+fixed(offset.x,2)+" µm，y = "+fixed(offset.y,2)+" µm；θₓ = "+fixed(tilt.x,2)+"°，θᵧ = "+fixed(tilt.y,2)+"°（近軸分量）。";
       var base=joint(origin,0,0).eta, current=joint(p,offset.x,offset.y);
       out.baseEta.textContent=pct(base);
       out.currentEta.textContent=pct(current.eta);
@@ -359,25 +420,23 @@
       var zEta=axialOnly(p,p.gap),z1=axialLimit(p,Math.pow(10,-.1)),z3=axialLimit(p,.5);
       out.axialReadout.textContent="目前 z = "+fixed(p.gap,2)+" µm：僅 z 的效率 "+pct(zEta)+"，相對 z = 0 額外損失 "+fixed(loss(zEta)-loss(axialOnly(p,0)),2)+" dB；1 dB 容差 ±"+fixed(z1,2)+" µm，半功率容差 ±"+fixed(z3,2)+" µm。";
       out.axialChartContext.textContent="目前 z = "+fixed(p.gap,2)+" µm";
-      var selected=p.offsetAxis==="x"?current.ax:current.ay;
+      var selected=radialProfile(p,current);
       var bound1=radialBoundary(selected.beta,selected.opt,false);
       var bound3=radialBoundary(selected.beta,selected.opt,true);
       var bestR=Math.max(0,selected.opt);
-      var direction=p.offsetAxis==="x"?"沿 x 軸":"沿 y 軸";
-      out.radialAxisLabel.textContent="位移 r（"+direction+"）";
+      var direction="α = "+fixed(p.offsetAzimuth,0)+"°";
+      out.radialAxisLabel.textContent="徑向位移 r";
       out.radialDirection.textContent=direction;
       out.r1.textContent=fixed(bound1,2)+" µm";
       out.r3.textContent=fixed(bound3,2)+" µm";
       out.ropt.textContent=fixed(bestR,2)+" µm";
       out.radialChartContext.textContent=direction+" · 固定 z、θ";
-      var lam=p.lambda/1000;
-      out.tiltX1.textContent="±"+fixed(angularTolerance(p.beamX,p.recvX/2,lam,p.medium,false),2)+"°";
-      out.tiltX3.textContent="±"+fixed(angularTolerance(p.beamX,p.recvX/2,lam,p.medium,true),2)+"°";
-      out.tiltY1.textContent="±"+fixed(angularTolerance(p.beamY,p.recvY/2,lam,p.medium,false),2)+"°";
-      out.tiltY3.textContent="±"+fixed(angularTolerance(p.beamY,p.recvY/2,lam,p.medium,true),2)+"°";
+      out.tiltDirection.textContent="θ（γ = "+fixed(p.tiltAzimuth,0)+"°）";
+      out.tilt1.textContent=fixed(angularLimit(p,false),2)+"°";
+      out.tilt3.textContent=fixed(angularLimit(p,true),2)+"°";
       var warnings=[];
-      if(Math.abs(p.tiltX)>5||Math.abs(p.tiltY)>5) warnings.push("傾角超過 5°；近軸近似需謹慎。");
-      if(Math.abs(p.gap)>0&&(p.tiltX!==0||p.tiltY!==0)) warnings.push("間距與傾角同時存在，局部最佳橫向位置可能偏離 0。");
+      if(p.tilt>5) warnings.push("傾角超過 5°；近軸近似需謹慎。");
+      if(Math.abs(p.gap)>0&&p.tilt!==0) warnings.push("間距與傾角同時存在，局部最佳橫向位置可能偏離 0。");
       out.status.className="status";
       out.status.textContent=warnings.length?warnings.join(" "):"計算採功率重疊；0 dB 額外損失表示維持此模場組合的最佳基準效率。";
       drawRadial(p,bound1,bound3,bestR);
@@ -435,7 +494,7 @@
       ctx.clearRect(0,0,w,h);
       var left=62,top=24,right=18,bottom=58,plotW=w-left-right,plotH=h-top-bottom;
       var maxR=Math.max(2,p.offsetR*1.25,bound3*1.35,bestR*1.5);
-      function etaAt(r){return p.offsetAxis==="x"?joint(p,r,0).eta:joint(p,0,r).eta;}
+      function etaAt(r){var o=radialOffset(p,r);return joint(p,o.x,o.y).eta;}
       var bestEta=etaAt(bestR);
       var maxEta=Math.min(1,Math.max(.1,Math.ceil(bestEta*10)/10));
       function px(r){return left+r/maxR*plotW;}
@@ -514,7 +573,7 @@
       p.gap=50;var gap=joint(p,0,0).eta;
       var combined=joint(p,2,0).eta;
       var paper=Object.assign({},defaults,presets.paper),paperEta=joint(paper,0,0).eta;
-      var tilt=Object.assign({},defaults,{tiltX:1}),tiltEta=joint(tilt,0,0).eta;
+      var tilt=Object.assign({},defaults,{tilt:1}),tiltEta=joint(tilt,0,0).eta;
       var expectedGap=1/(1+Math.pow(1.55*50/(2*Math.PI*5.2*5.2),2));
       var expectedTilt=Math.exp(-Math.pow(Math.PI*5.2*rad(1)/1.55,2));
       var unequal=Object.assign({},defaults,{beamX:3,beamY:3,recvX:10,recvY:10,gap:17});
@@ -522,6 +581,17 @@
       var expectedEq6=4*zr1*zr2/(Math.pow(zr1+zr2,2)+17*17);
       var paperAxial=Object.assign({},paper,{gap:17});
       var expectedZ1=2*Math.PI*5.2*5.2/1.55*Math.sqrt(Math.pow(10,.1)-1);
+      var vectorCase=Object.assign({},defaults,{offsetR:5,offsetAzimuth:Math.atan2(4,3)*180/Math.PI});
+      var vector=radialOffset(vectorCase);
+      var rotatedTilt=Object.assign({},tilt,{tiltAzimuth:37});
+      var combinedPolar=Object.assign({},defaults,{offsetR:2,gap:50,tilt:1});
+      var rotatedPolar=Object.assign({},combinedPolar,{offsetAzimuth:37,tiltAzimuth:37});
+      var polarOffset=radialOffset(rotatedPolar);
+      var ellipse=Object.assign({},paper,{offsetAzimuth:37,tiltAzimuth:64,tilt:1,gap:17});
+      var profile=radialProfile(ellipse,joint(ellipse,0,0)),bestR=Math.max(0,profile.opt);
+      var thresholdR=radialBoundary(profile.beta,profile.opt,false);
+      var bestOffset=radialOffset(ellipse,bestR),thresholdOffset=radialOffset(ellipse,thresholdR);
+      var matchedProfile=radialProfile(combinedPolar,joint(combinedPolar,0,0));
       var checks=[
         close(z,1,1e-12),
         close(lateral,Math.exp(-4/(5.2*5.2)),1e-12),
@@ -533,12 +603,17 @@
         close(angularTolerance(5.2,5.2,1.55,1,false),2.61,.01),
         close(joint(unequal,0,0).eta,expectedEq6,1e-12),
         close(axialOnly(paperAxial,17),joint(paperAxial,0,0).eta,1e-12),
-        close(axialLimit(defaults,Math.pow(10,-.1)),expectedZ1,1e-9)
+        close(axialLimit(defaults,Math.pow(10,-.1)),expectedZ1,1e-9),
+        close(vector.x,3,1e-12)&&close(vector.y,4,1e-12)&&close(Math.hypot(vector.x,vector.y),5,1e-12),
+        close(joint(rotatedTilt,0,0).eta,expectedTilt,1e-12),
+        close(joint(rotatedPolar,polarOffset.x,polarOffset.y).eta,joint(combinedPolar,2,0).eta,1e-12),
+        close(joint(ellipse,thresholdOffset.x,thresholdOffset.y).eta/joint(ellipse,bestOffset.x,bestOffset.y).eta,Math.pow(10,-.1),1e-12),
+        close(matchedProfile.opt,combinedPolar.gap*rad(combinedPolar.tilt)/2,1e-12)
       ];
       var passed=checks.filter(Boolean).length;
-      out.qaStatus.textContent="內建數值核對 "+passed+"/"+checks.length+"：等模場、位移、間距、位移加間距、論文 m=0.25、傾角、MFD = 2w、角度容差、論文 Eq. 6、橢圓模場軸向計算與 z 方向 1 dB 容差；其中位移加間距對照 Photonica 範例 73.2%。";
+      out.qaStatus.textContent="內建數值核對 "+passed+"/"+checks.length+"：高斯簡式、論文 Eq. 6、橢圓模場、r² = x² + y²、總傾角、圓形模場旋轉不變性、任意方位的徑向容差及 z/θ 交互項；其中位移加間距對照 Photonica 範例 73.2%。";
       out.qaStatus.style.color=passed===checks.length?"#257166":"#ad2b2b";
-      window.fiberCouplingModel={axis:axis,joint:joint,axialOnly:axialOnly,axialLimit:axialLimit,selfCheck:checks};
+      window.fiberCouplingModel={axis:axis,joint:joint,radialOffset:radialOffset,tiltComponents:tiltComponents,radialProfile:radialProfile,angularLimit:angularLimit,axialOnly:axialOnly,axialLimit:axialLimit,selfCheck:checks};
     }
     ids.forEach(function(id){el[id].addEventListener("input",function(){
       document.querySelectorAll(".preset").forEach(function(b){b.setAttribute("aria-pressed","false");});
