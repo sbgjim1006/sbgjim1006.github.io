@@ -5,624 +5,359 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
   <title>光纖耦合效率模擬器 · jimjcy</title>
-  <meta name="description" content="調整高斯模場、位移、傾角與軸向間距，模擬光纖耦合效率、對位容差及 FAU 陣列逐通道損失。">
+  <meta name="description" content="調整高斯模場與對位參數，分析位移、角度及 z offset 的光纖耦合效率與容差，並查閱完整公式統整。">
   <style>
-    :root{color-scheme:light;--ink:#173047;--muted:#5d7180;--line:#d9e3e9;--paper:#fff;--wash:#f3f8fa;--teal:#087e87;--deep:#113650;--gold:#d99527;--warn:#a75524}
+    :root{color-scheme:light;--ink:#173047;--muted:#5d7180;--line:#d9e3e9;--paper:#fff;--wash:#f3f8fa;--teal:#087e87;--deep:#113650;--orange:#d56b29;--red:#bd4854;--gold:#c18b24}
     *{box-sizing:border-box}
-    body{margin:0;background:var(--wash);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;line-height:1.55}
-    a{color:#075f77}
-    button,input,select{font:inherit}
-    button{cursor:pointer}
-    button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #d99527;outline-offset:2px}
-    .wrap{max-width:1240px;margin:auto;padding:0 24px}
-    header{background:linear-gradient(130deg,#0d304a,#0b5667 70%,#188b8c);color:#fff;padding:34px 0 31px}
-    header a{color:#bdeff0}
-    .backlink{display:inline-block;margin-bottom:16px;font-size:13px;text-underline-offset:3px}
-    .eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#a6e5e2}
-    h1{font-size:clamp(29px,4.2vw,46px);line-height:1.14;margin:7px 0 12px;letter-spacing:-.025em}
-    .intro{max-width:860px;margin:0;color:#d5edf1}
-    .sourcebar{display:flex;gap:16px;flex-wrap:wrap;margin-top:19px;font-size:13px}
-    main{padding-top:25px;padding-bottom:60px}
-    h2{font-size:22px;line-height:1.25;margin:0 0 12px}
-    h3{font-size:16px;margin:0 0 10px}
-    p{margin:0 0 12px}
-    .muted{color:var(--muted)}
-    .small{font-size:13px}
-    .presetrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 20px}
-    .presetrow span{font-weight:700;margin-right:5px}
-    .preset{border:1px solid #afd0d2;background:#fff;color:#145267;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700}
+    body{margin:0;background:var(--wash);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;line-height:1.6}
+    a{color:#075f77;text-underline-offset:3px}button,input{font:inherit}button{cursor:pointer}
+    button:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+    .wrap{max-width:1320px;margin:auto;padding:0 28px}
+    header{background:linear-gradient(130deg,#0d304a,#0b5667 70%,#188b8c);color:#fff;padding:27px 0 30px}
+    header a{color:#bdeff0}.backlink{display:inline-block;margin-bottom:15px;font-size:13px}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#a6e5e2}
+    h1{font-size:clamp(28px,3.8vw,43px);line-height:1.2;margin:7px 0 12px;letter-spacing:-.025em}
+    .intro{max-width:820px;margin:0;color:#d5edf1;font-size:15px}
+    main{padding-top:25px;padding-bottom:50px}h2{font-size:22px;line-height:1.3;margin:0 0 13px}h3{font-size:17px;line-height:1.4;margin:0 0 10px}p{margin:0 0 12px}
+    .small{font-size:13px}.muted,.hint{color:var(--muted)}.hint{font-size:12px;margin:8px 0 0}
+    .layout{display:grid;grid-template-columns:minmax(290px,340px) minmax(0,1fr);gap:22px;align-items:start}
+    .panel{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:15px;box-shadow:0 6px 22px #163b4e08;padding:21px}
+    .controls{display:grid;gap:19px}.controls h2{margin:0}.section-number{font-size:11px;color:var(--teal);letter-spacing:.1em}
+    .presetrow{display:flex;gap:7px;flex-wrap:wrap}.preset{border:1px solid #afd0d2;background:#fff;color:#145267;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700}
     .preset:hover,.preset[aria-pressed="true"]{background:#0d6372;color:#fff;border-color:#0d6372}
-    .layout{display:grid;grid-template-columns:minmax(295px,365px) minmax(0,1fr);gap:20px;align-items:start}
-    .panel{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:0 7px 24px #163b4e0a;padding:20px}
-    .controls{display:grid;gap:18px}
-    fieldset{border:0;padding:0;margin:0}
-    legend{font-size:15px;font-weight:800;margin-bottom:10px;color:var(--deep)}
-    .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
-    .field{display:flex;flex-direction:column;gap:5px;min-width:0}
-    .field.full{grid-column:1/-1}
-    label{font-size:12px;font-weight:700;color:#3a5568}
-    input,select{width:100%;min-width:0;border:1px solid #b9ccd5;border-radius:8px;background:#fff;color:var(--ink);padding:8px 10px}
-    input:focus,select:focus{border-color:var(--teal)}
-    .sliderhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
-    .sliderhead output{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:#075f77;background:#eaf5f5;padding:3px 8px;border-radius:6px;white-space:nowrap}
-    input[type="range"]{accent-color:var(--teal);padding:0;border:0;background:transparent;height:28px;cursor:pointer}
-    .sliderscale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-4px}
-    .directionsettings{margin-top:12px}
-    .directionsettings summary{font-size:12px;font-weight:700;color:#145267;cursor:pointer}
-    .directionsettings .fields{margin-top:12px}
-    .hint{font-size:12px;color:var(--muted);margin:9px 0 0}
-    .divider{height:1px;background:var(--line)}
-    .result{display:grid;gap:18px}
-    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    .stat{padding:15px;border-radius:12px;background:#eaf5f5}
-    .stat:nth-child(2){background:#edf2f8}
-    .stat:nth-child(3){background:#fcf3e7}
-    .stat .name{font-size:12px;color:#48687a;font-weight:700}
-    .stat strong{display:block;font-size:clamp(21px,2.6vw,30px);line-height:1.2;margin:5px 0;color:#0b5163}
-    .stat:nth-child(3) strong{color:#9c601d}
-    .stat small{font-size:11px;color:#607583}
-    .status{font-size:13px;color:var(--muted)}
-    .status.error{color:#ad2b2b;font-weight:700}
-    .chartgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
-    .charthead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
-    .charthead h3{margin:0}
-    .charthead span{font-size:12px;color:var(--muted)}
-    canvas{width:100%;max-width:100%;height:auto;aspect-ratio:1/1;display:block}
-    #arrayChart{width:100%;height:auto;display:block}
-    .legend{font-size:12px;color:var(--muted);margin-top:8px}
-    .legend b{color:#c3542f}
-    .detail{border-top:1px solid var(--line);padding-top:14px}
-    .detail summary{font-weight:800;color:#145267;cursor:pointer}
-    .tablewrap{overflow:auto;margin-top:12px}
-    table{border-collapse:collapse;width:100%;font-size:13px}
-    th,td{padding:9px 11px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-    th:first-child,td:first-child{text-align:left}
-    th{background:#eaf2f5;color:#34576a}
-    section.explain{margin-top:24px}
-    .formula{background:#edf6f6;border-left:4px solid var(--teal);padding:12px 15px;border-radius:0 8px 8px 0;overflow:auto;font-family:"Cambria Math","Times New Roman",serif;font-size:17px;white-space:nowrap}
-    .quickformulas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
-    .quickformulas>div{min-width:0;background:#f7fafb;border:1px solid var(--line);border-radius:10px;padding:12px}
-    .quickformulas .formula{font-size:15px;background:transparent;border:0;padding:4px 0}
-    .quickformulas .axialformula{grid-column:1/-1}
-    #radialChart{aspect-ratio:1.35/1}
-    #axialChart{aspect-ratio:2.25/1}
-    .compare td,.compare th{text-align:left;white-space:normal;vertical-align:top}
-    .compare td:first-child{font-weight:700;min-width:138px}
-    .warning{background:#fff5e9;border:1px solid #edcda7;border-radius:10px;padding:12px 14px;color:#744319}
-    .footnotes{margin-top:22px;font-size:13px;color:var(--muted)}
-    .footnotes ul{margin:7px 0 0;padding-left:21px}
-    @media(max-width:980px){.layout{grid-template-columns:minmax(0,1fr)}.chartgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-    @media(max-width:690px){.wrap{padding:0 14px}.panel{padding:15px}.stats,.chartgrid,.quickformulas{grid-template-columns:minmax(0,1fr)}.stat{min-height:75px}.fields{gap:9px}header{padding:28px 0}.sourcebar{gap:9px}#axialChart{aspect-ratio:1.35/1}}
+    fieldset{border:0;padding:0;margin:0}legend{font-size:14px;font-weight:800;margin-bottom:10px;color:var(--deep)}
+    .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.full{grid-column:1/-1}
+    label{font-size:12px;font-weight:700;color:#3a5568}input{width:100%;min-width:0;border:1px solid #b9ccd5;border-radius:8px;background:#fff;color:var(--ink);padding:8px 9px}
+    .sliderhead{display:flex;justify-content:space-between;align-items:center;gap:7px}.sliderhead output{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#075f77;background:#eaf5f5;padding:3px 7px;border-radius:6px;white-space:nowrap}
+    input[type="range"]{accent-color:var(--teal);padding:0;border:0;background:transparent;height:27px;cursor:pointer}
+    .sliderscale{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:-4px}.divider{height:1px;background:var(--line)}
+    .directionsettings summary{font-size:12px;font-weight:700;color:#145267;cursor:pointer}.directionsettings .fields{margin-top:13px}
+    .result{display:grid;gap:17px}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .stat{padding:15px 13px;border-radius:11px;background:#eaf5f5}.stat:nth-child(2){background:#edf2f8}.stat:nth-child(3){background:#fcf3e7}
+    .stat .name{font-size:12px;color:#48687a;font-weight:700}.stat strong{display:block;font-size:clamp(23px,2.4vw,32px);line-height:1.2;margin:7px 0;color:#0b5163;font-variant-numeric:tabular-nums}.stat:nth-child(3) strong{color:#9c601d}.stat small{font-size:11px;color:#607583}
+    .status{font-size:12px;color:var(--muted);margin:12px 0 0}.status.error{color:#ad2b2b;font-weight:700}
+    .tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}th{background:#eaf2f5;color:#34576a}
+    .analysis-head h2{margin-bottom:8px}.chart-legend{display:flex;gap:7px 17px;flex-wrap:wrap;font-size:11px;color:var(--muted)}.chart-legend span{display:inline-flex;align-items:center;gap:6px}.key{display:inline-block;width:22px;height:0;border-top:3px solid var(--teal)}.key.combined{border-color:var(--orange);border-top-style:dashed}.key.one{border-color:var(--red);border-top-width:2px;border-top-style:dashed}.key.half{border-color:var(--gold);border-top-width:2px;border-top-style:dotted}
+    .charthead{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.charthead h3{margin:0}.charthead span{font-size:12px;color:var(--muted)}
+    .chart-panel{padding:17px 19px}.chart-panel canvas{width:100%;max-width:100%;height:auto;aspect-ratio:2.85/1;display:block;margin-top:9px}.chart-note{font-size:11px;color:var(--muted);margin:5px 0 0}
+    .formulas{margin-top:31px;padding:27px}.formula-intro{max-width:890px}.formula-nav{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0 24px}.formula-nav a{font-size:12px;padding:6px 10px;border:1px solid #bfd5da;border-radius:7px;text-decoration:none}
+    .formula-section{padding:23px 0;border-top:1px solid var(--line);scroll-margin-top:20px}.formula-section:last-child{padding-bottom:0}.formula-section h3{font-size:20px}.formula-section p{font-size:13px;color:#526a7b}
+    .formula{background:#edf6f6;border-left:3px solid var(--teal);padding:12px 15px;border-radius:0 8px 8px 0;overflow-x:auto;font-family:"Cambria Math","Times New Roman",serif;font-size:17px;white-space:nowrap;margin:10px 0}.formula>span{display:block;margin:3px 0}
+    .formula-pair{display:grid;grid-template-columns:1fr 1fr;gap:15px}.formula-pair>div{min-width:0}.formula-pair h4{font-size:13px;margin:7px 0}.summary-table td,.summary-table th{text-align:left;white-space:normal;vertical-align:top}.summary-table td:first-child{font-weight:700;min-width:100px}.summary-table .math{font-family:"Cambria Math","Times New Roman",serif;font-size:15px}
+    .full-model{margin-top:16px}.full-model summary{font-size:14px;font-weight:800;color:#145267;cursor:pointer}.model-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}.model-grid>div{min-width:0}
+    .warning{background:#fff5e9;border:1px solid #edcda7;border-radius:9px;padding:12px 14px;margin-top:17px}.warning p{color:#744319;margin:0;font-size:12px}
+    .sources{font-size:12px;color:var(--muted);margin-top:19px}.sources ul{padding-left:20px;margin:6px 0 0}.sources li{margin:6px 0}.qa{font-size:12px;margin:14px 0 0;color:#257166}
+    @media(max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}.controls .fields{gap:14px}.formula-pair,.model-grid{grid-template-columns:1fr}.wrap{padding:0 20px}}
+    @media(max-width:600px){.wrap{padding:0 13px}header{padding:22px 0}.panel{padding:16px}.stats{grid-template-columns:1fr}.stat strong{font-size:27px}.stat{padding:12px 15px}.chart-panel canvas{aspect-ratio:1.5/1}.formulas{padding:18px}.formula{font-size:16px;padding:10px 12px}.chart-legend{font-size:10px;gap:7px 12px}.charthead span{font-size:11px}.formula-nav{margin-bottom:18px}}
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
       <a class="backlink" href="../">← 返回個人小工具</a>
-      <div class="eyebrow">Gaussian overlap · FAU attach</div>
+      <div class="eyebrow">Gaussian overlap · Alignment tolerance</div>
       <h1>光纖耦合效率模擬器</h1>
-      <p class="intro">調整模場、位移、傾角與軸向間距，觀察單通道及 FAU 陣列的理論耦合效率。計算採用完整的純量高斯光場重疊，並對照 Photonica 的簡化公式與 Wang–Su 論文。</p>
-      <div class="sourcebar">
-        <a href="https://www.photonica.io/articles/fiber-array-attach" target="_blank" rel="noopener">Photonica：Fiber Array Attach ↗</a>
-        <a href="https://www.photonica.io/tools/fiber-coupling" target="_blank" rel="noopener">Photonica：耦合計算器 ↗</a>
-        <span>Wang &amp; Su, JLT 14(12), 2757–2762 (1996), Eq. 1–8</span>
-      </div>
+      <p class="intro">從模場匹配到對位容差：左側調整參數，右側比較耦合結果與位移、角度、軸向間距三個方向的容差。完整公式與統整集中在下方。</p>
     </div>
   </header>
   <main class="wrap">
-    <div class="presetrow" aria-label="情境預設">
-      <span>快速情境</span>
-      <button class="preset" type="button" data-preset="matched" aria-pressed="true">等模場基準</button>
-      <button class="preset" type="button" data-preset="mismatch" aria-pressed="false">10.4 → 4 µm 模場</button>
-      <button class="preset" type="button" data-preset="paper" aria-pressed="false">論文 Eq. 8：m = 0.25</button>
-      <button class="preset" type="button" data-preset="pitch" aria-pressed="false">16 通道節距差</button>
-    </div>
-    <div class="layout">
-      <div class="panel controls" aria-label="模擬參數">
+    <div class="layout" id="simulation">
+      <aside class="panel controls" aria-label="模擬參數">
+        <div><span class="section-number">01 / PARAMETERS</span><h2>模擬參數</h2></div>
+        <div class="presetrow" aria-label="情境預設">
+          <button class="preset" type="button" data-preset="matched" aria-pressed="true">等模場</button>
+          <button class="preset" type="button" data-preset="mismatch" aria-pressed="false">模場不匹配</button>
+          <button class="preset" type="button" data-preset="paper" aria-pressed="false">橢圓模場</button>
+        </div>
         <fieldset>
-          <legend>01　光場與介質</legend>
+          <legend>光場與介質</legend>
           <div class="fields">
             <div class="field"><label for="lambda">真空波長 λ（nm）</label><input id="lambda" type="number" min="100" max="5000" step="10" value="1550"></div>
-            <div class="field"><label for="medium">間隙介質折射率 n</label><input id="medium" type="number" min="1" max="3" step="0.001" value="1"></div>
-            <div class="field"><label for="beamX">入射光束腰 wₓ（µm）</label><input id="beamX" type="number" min="0.05" step="0.1" value="5.2"></div>
-            <div class="field"><label for="beamY">入射光束腰 wᵧ（µm）</label><input id="beamY" type="number" min="0.05" step="0.1" value="5.2"></div>
-            <div class="field"><label for="recvX">接收模場 MFDₓ（µm）</label><input id="recvX" type="number" min="0.1" step="0.1" value="10.4"></div>
-            <div class="field"><label for="recvY">接收模場 MFDᵧ（µm）</label><input id="recvY" type="number" min="0.1" step="0.1" value="10.4"></div>
+            <div class="field"><label for="medium">間隙折射率 n</label><input id="medium" type="number" min="1" max="3" step="0.001" value="1"></div>
+            <div class="field"><label for="beamX">入射束腰 wₓ（µm）</label><input id="beamX" type="number" min="0.05" step="0.1" value="5.2"></div>
+            <div class="field"><label for="beamY">入射束腰 wᵧ（µm）</label><input id="beamY" type="number" min="0.05" step="0.1" value="5.2"></div>
+            <div class="field"><label for="recvX">接收 MFDₓ（µm）</label><input id="recvX" type="number" min="0.1" step="0.1" value="10.4"></div>
+            <div class="field"><label for="recvY">接收 MFDᵧ（µm）</label><input id="recvY" type="number" min="0.1" step="0.1" value="10.4"></div>
           </div>
-          <p class="hint">w 是 1/e² 強度半徑；在高斯近似下 MFD ≈ 2w。n 指光束傳播的間隙介質，不是波導有效折射率。</p>
+          <p class="hint">入射欄位使用束腰半徑，接收欄位使用模場直徑。折射率指兩者之間的傳播介質。</p>
         </fieldset>
         <div class="divider"></div>
         <fieldset>
-          <legend>02　對位偏差</legend>
+          <legend>對位偏差</legend>
           <div class="fields">
             <div class="field full">
-              <div class="sliderhead"><label for="offsetR">橫向位移大小 r</label><output id="offsetRValue" for="offsetR">0.00 µm</output></div>
-              <input id="offsetR" type="range" min="0" max="20" step="0.01" value="0" aria-describedby="radialDefinition">
-              <div class="sliderscale"><span>0 µm</span><span>20 µm</span></div>
+              <div class="sliderhead"><label for="offsetR">位移 r（µm）</label><output id="offsetRValue" for="offsetR">0.00 µm</output></div>
+              <input id="offsetR" type="range" min="-10" max="10" step="0.01" value="0" aria-describedby="signedHint">
+              <div class="sliderscale"><span>−10 µm</span><span>0</span><span>+10 µm</span></div>
             </div>
             <div class="field full">
-              <div class="sliderhead"><label for="gap">軸向間距 z</label><output id="gapValue" for="gap">0.0 µm</output></div>
+              <div class="sliderhead"><label for="tilt">角度差 θ（rad）</label><output id="tiltValue" for="tilt">0.0000 rad</output></div>
+              <input id="tilt" type="range" min="-0.1" max="0.1" step="0.0001" value="0">
+              <div class="sliderscale"><span>−0.100 rad</span><span>0</span><span>+0.100 rad</span></div>
+            </div>
+            <div class="field full">
+              <div class="sliderhead"><label for="gap">Z offset（µm）</label><output id="gapValue" for="gap">0.0 µm</output></div>
               <input id="gap" type="range" min="-500" max="500" step="0.5" value="0">
-              <div class="sliderscale"><span>−500 µm</span><span>+500 µm</span></div>
+              <div class="sliderscale"><span>−500 µm</span><span>0</span><span>+500 µm</span></div>
+            </div>
+          </div>
+          <p class="hint" id="signedHint">位移與角度採有號掃描；負值代表沿所選方位的反方向。Z offset 是入射束腰到接收面的軸向距離。</p>
+        </fieldset>
+        <details class="directionsettings">
+          <summary>進階：位移與傾斜方位</summary>
+          <div class="fields">
+            <div class="field full">
+              <div class="sliderhead"><label for="offsetAzimuth">位移方位 α（°）</label><output id="offsetAzimuthValue" for="offsetAzimuth">0°</output></div>
+              <input id="offsetAzimuth" type="range" min="0" max="360" step="1" value="0">
+              <div class="sliderscale"><span>0° · +x</span><span>180° · −x</span><span>360°</span></div>
             </div>
             <div class="field full">
-              <div class="sliderhead"><label for="tilt">相對傾角 θ</label><output id="tiltValue" for="tilt">0.00°</output></div>
-              <input id="tilt" type="range" min="0" max="10" step="0.01" value="0">
-              <div class="sliderscale"><span>0°</span><span>10°</span></div>
+              <div class="sliderhead"><label for="tiltAzimuth">傾斜方位 γ（°）</label><output id="tiltAzimuthValue" for="tiltAzimuth">0°</output></div>
+              <input id="tiltAzimuth" type="range" min="0" max="360" step="1" value="0">
+              <div class="sliderscale"><span>0° · +x</span><span>180° · −x</span><span>360°</span></div>
             </div>
           </div>
-          <p class="hint" id="radialDefinition"><strong>r² = x² + y²，r = √(x² + y²)</strong>，是兩模場中心的橫向距離。θ 是兩光軸的相對傾角大小，使用間隙介質內的角度。</p>
-          <details class="directionsettings">
-            <summary>進階：位移與傾斜的方位</summary>
-            <div class="fields">
-              <div class="field full">
-                <div class="sliderhead"><label for="offsetAzimuth">位移方位 α</label><output id="offsetAzimuthValue" for="offsetAzimuth">0°</output></div>
-                <input id="offsetAzimuth" type="range" min="0" max="360" step="1" value="0">
-                <div class="sliderscale"><span>0° · +x</span><span>180° · −x</span><span>360° · +x</span></div>
-              </div>
-              <div class="field full">
-                <div class="sliderhead"><label for="tiltAzimuth">傾斜方位 γ</label><output id="tiltAzimuthValue" for="tiltAzimuth">0°</output></div>
-                <input id="tiltAzimuth" type="range" min="0" max="360" step="1" value="0">
-                <div class="sliderscale"><span>0° · +x</span><span>180° · −x</span><span>360° · +x</span></div>
-              </div>
-            </div>
-            <p class="hint">方位由 +x 朝 +y 量起。橢圓模場及 z、θ 的交互作用需要方向；r 和 θ 本身都是大小。預設位移與傾斜同向。</p>
-            <p class="hint" id="vectorReadout">—</p>
-          </details>
-        </fieldset>
-        <div class="divider"></div>
-        <fieldset>
-          <legend>03　FAU 陣列幾何</legend>
-          <div class="fields">
-            <div class="field"><label for="channels">通道數</label><input id="channels" type="number" min="1" max="96" step="1" value="16"></div>
-            <div class="field"><label for="anchor">對準基準</label><select id="anchor"><option value="center">陣列中心</option><option value="first">第 1 通道</option></select></div>
-            <div class="field"><label for="pitchFau">FAU 節距（µm）</label><input id="pitchFau" type="number" min="0.1" step="0.01" value="127"></div>
-            <div class="field"><label for="pitchPic">PIC 節距（µm）</label><input id="pitchPic" type="number" min="0.1" step="0.01" value="127"></div>
-            <div class="field full"><label for="yaw">陣列平面內轉角 φ（°）</label><input id="yaw" type="number" step="0.01" value="0"></div>
-          </div>
-          <p class="hint">陣列沿 y 方向排列；旋轉 φ 會使遠離基準的通道產生 x 偏移。未加入逐通道隨機芯位誤差。</p>
-        </fieldset>
-      </div>
-      <div class="result">
-        <div class="panel">
-          <h2>計算結果</h2>
+          <p class="hint">方位從 +x 朝 +y 量起；橢圓模場對不同方向的偏差有不同敏感度。角度差 θ 全部以弧度計算。</p>
+        </details>
+        <a class="small" href="#formulas">查看完整公式與統整 ↓</a>
+      </aside>
+      <div class="result" aria-label="計算結果與容差分析">
+        <section class="panel">
+          <span class="section-number">02 / RESULTS</span><h2>耦合結果</h2>
           <div class="stats" aria-live="polite">
-            <div class="stat"><div class="name">基準效率 η₀</div><strong id="baseEta">—</strong><small>z = 0，位移與傾角 = 0</small></div>
-            <div class="stat"><div class="name">基準位置效率 η</div><strong id="currentEta">—</strong><small>套用目前 r、z、θ</small></div>
-            <div class="stat"><div class="name">額外耦合損失</div><strong id="extraLoss">—</strong><small>相對 η₀，不含反射或吸收</small></div>
+            <div class="stat"><div class="name">基準效率 η₀</div><strong id="baseEta">—</strong><small>模場固定，三種偏差皆為零</small></div>
+            <div class="stat"><div class="name">目前效率 η</div><strong id="currentEta">—</strong><small>套用目前全部對位參數</small></div>
+            <div class="stat"><div class="name">額外耦合損失</div><strong id="extraLoss">—</strong><small>相對於基準效率</small></div>
           </div>
           <p class="status" id="status" role="status" aria-live="polite"></p>
-          <div class="quickformulas">
-            <div>
-              <strong>高斯光束的模場直徑</strong>
-              <div class="formula">I(ρ)/I₀ = exp(−2ρ²/w²)　→　MFD ≈ 2w</div>
-              <p class="small muted" id="mfdReadout" style="margin:0">—</p>
-              <p class="small muted" style="margin:4px 0 0">ρ 是光斑內的徑向座標；控制欄的 r 是兩個模場中心的位移長度。</p>
-            </div>
-            <div>
-              <strong>傾角造成的耦合損失</strong>
-              <div class="formula">η(θ)/η(0) = exp[−(πnwθ/λ)²]</div>
-              <p class="small muted" style="margin:0">相同圓形模場、r = z = 0；θ 用弧度。模場不等時，下面容差用完整高斯式計算。</p>
-            </div>
-            <div class="axialformula">
-              <strong>z 方向間距造成的耦合損失 · 論文 Eq. (6)</strong>
-              <div class="formula">η(z) = 4Z₁Z₂ / [(Z₁ + Z₂)² + z²]，Zᵢ = πnwᵢ²/λ</div>
-              <p class="small muted" style="margin:0">同軸圓形模場、r = θ = 0。接收模場束腰假設在光纖端面，因此輸入 z 就是兩束腰距離。論文以空氣 n = 1 寫成 Zᵢ = πwᵢ²/λ；本頁 λ 為真空波長。橢圓模場以 x、y 兩軸重疊相乘。</p>
-              <p class="small" id="axialReadout" style="margin:8px 0 0">—</p>
-            </div>
-          </div>
+        </section>
+        <section class="panel">
+          <h3>單項對位容差</h3>
           <div class="tablewrap">
-            <table aria-label="橫向位移容差">
-              <thead><tr><th id="radialAxisLabel">位移 r</th><th>額外 1 dB 的 r</th><th>半功率的 r</th><th>最佳 r</th></tr></thead>
-              <tbody>
-                <tr><td id="radialDirection">r</td><td id="r1">—</td><td id="r3">—</td><td id="ropt">—</td></tr>
-              </tbody>
-            </table>
+            <table aria-label="三方向單項容差"><thead><tr><th>偏差方向</th><th>額外 1 dB</th><th>半功率</th><th>目前值</th></tr></thead><tbody>
+              <tr><td>位移 r（µm）</td><td id="r1">—</td><td id="r3">—</td><td id="rNow">—</td></tr>
+              <tr><td>角度差 θ（rad）</td><td id="tilt1">—</td><td id="tilt3">—</td><td id="tiltNow">—</td></tr>
+              <tr><td>Z offset（µm）</td><td id="z1">—</td><td id="z3">—</td><td id="zNow">—</td></tr>
+            </tbody></table>
           </div>
-          <p class="hint">橫向門檻固定目前 z、θ 與方位，從 r ≥ 0 的局部最佳值起算。半功率相當於約 3.01 dB。</p>
-          <div class="tablewrap">
-            <table aria-label="傾角容差">
-              <thead><tr><th>相對傾角 θ</th><th>1 dB 角度</th><th>半功率角度</th></tr></thead>
-              <tbody>
-                <tr><td id="tiltDirection">θ</td><td id="tilt1">—</td><td id="tilt3">—</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="hint">傾角門檻以 z = r = 0 為基準，沿目前傾斜方位 γ，並用實際模場半徑計算。</p>
+          <p class="hint">以零偏差的基準效率為參考，分別只改變一項偏差。半功率相當於約 3.01 dB；方位採左側目前設定。</p>
+        </section>
+        <div class="analysis-head">
+          <h2>三方向容差分析</h2>
+          <div class="chart-legend"><span><i class="key"></i>單項偏差</span><span><i class="key combined"></i>固定其他目前參數</span><span><i class="key one"></i>單項 1 dB 容差</span><span><i class="key half"></i>單項半功率容差</span></div>
         </div>
-        <div class="chartgrid">
-          <div class="panel">
-            <div class="charthead"><h3>位移 r 與耦合效率</h3><span id="radialChartContext">—</span></div>
-            <canvas id="radialChart" width="600" height="440" role="img" aria-label="橫軸為位移 r、縱軸為耦合效率的曲線"></canvas>
-            <p class="legend"><b>橘點：</b>目前 r；紅線：額外 1 dB；黃線：半功率。縱軸為絕對高斯耦合效率；固定目前 z 與 θ。</p>
-          </div>
-          <div class="panel">
-            <div class="charthead"><h3>逐通道效率</h3><span id="arraySummary">—</span></div>
-            <svg id="arrayChart" viewBox="0 0 760 360" role="img" aria-label="FAU 各通道理論耦合效率柱狀圖"></svg>
-            <p class="legend">節距差、陣列轉角與整體對位偏差共同決定通道位置；每根柱代表一個通道的高斯模場效率。</p>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="charthead"><h3>z 間距與耦合效率</h3><span id="axialChartContext">—</span></div>
-          <canvas id="axialChart" width="900" height="400" role="img" aria-label="橫軸為軸向間距 z、縱軸為耦合效率的曲線"></canvas>
-          <p class="legend"><span style="color:#087e87;font-weight:800">青線：</span>僅改變 z（r = θ = 0）；<b>橘線：</b>固定目前 r、θ 再改變 z；橘點：目前 z。紅／黃虛線：單獨 z 損失的 ±1 dB／±半功率門檻。縱軸為絕對效率。</p>
-        </div>
-        <div class="panel detail">
-          <details>
-            <summary>展開逐通道數值</summary>
-            <div class="tablewrap"><table aria-label="逐通道效率表"><thead><tr><th>通道</th><th>位移 r（µm）</th><th>效率</th><th>插入損失</th></tr></thead><tbody id="channelRows"></tbody></table></div>
-            <p class="hint">r 是位移長度；陣列轉角與節距差會產生不同方向的位移。橢圓模場仍按 x、y 分量計算效率。</p>
-          </details>
-        </div>
+        <section class="panel chart-panel">
+          <div class="charthead"><h3>A. 位移 r</h3><span id="radialContext">−10 ～ +10 µm</span></div>
+          <canvas id="radialChart" width="900" height="316" role="img" aria-label="位移 r，範圍負 10 至正 10 微米的耦合效率曲線"></canvas>
+          <p class="chart-note">掃描位移時，橘色曲線固定目前角度與 z offset；橘點表示目前參數。</p>
+        </section>
+        <section class="panel chart-panel">
+          <div class="charthead"><h3>B. 角度差 θ</h3><span id="angularContext">角度以弧度顯示</span></div>
+          <canvas id="angularChart" width="900" height="316" role="img" aria-label="角度差 theta，以弧度表示的耦合效率曲線"></canvas>
+          <p class="chart-note">掃描角度差時，橘色曲線固定目前位移與 z offset；橘點表示目前參數。</p>
+        </section>
+        <section class="panel chart-panel">
+          <div class="charthead"><h3>C. Z offset</h3><span id="axialContext">束腰到接收面的軸向偏差</span></div>
+          <canvas id="axialChart" width="900" height="316" role="img" aria-label="Z offset，軸向間距與耦合效率曲線"></canvas>
+          <p class="chart-note">掃描 z offset 時，橘色曲線固定目前位移與角度；圖域依軸向容差自動調整。</p>
+        </section>
       </div>
     </div>
-    <section class="explain panel">
-      <h2>核心公式：網站與論文如何對上</h2>
-      <p>在同一平面、沒有傾角與波前曲率，且兩端模場均為圓形時，橫向位移長度 r 的功率耦合效率為：</p>
-      <div class="formula">η(r) = [2w<sub>b</sub>w<sub>f</sub> / (w<sub>b</sub>² + w<sub>f</sub>²)]² · exp[−2r² / (w<sub>b</sub>² + w<sub>f</sub>²)]</div>
-      <p class="small muted" style="margin-top:9px">r² = x² + y²。這就是 Photonica 的主公式，也是 Wang–Su 論文 Eq. 1–3 的圓對稱特例。圓形模場的單獨位移損失只取決於 r；橢圓模場另以方位 α 決定 x = r cosα、y = r sinα，再將兩軸的重疊效率相乘。</p>
-      <div class="formula">相同圓形模場且 r = z = 0：η(θ)/η(0) = exp[−(πnwθ/λ)²]</div>
-      <p class="small muted" style="margin-top:9px">θ 是總傾角大小；近軸模型以 θₓ = θ cosγ、θᵧ = θ sinγ 換算分量，因此 θ² = θₓ² + θᵧ²。若兩模場半徑不等，各軸傾角的指數為 −(k²θ<sub>j</sub>²/2)·w<sub>bj</sub>²w<sub>fj</sub>²/(w<sub>bj</sub>²+w<sub>fj</sub>²)，k=2πn/λ；兩軸相乘得到總效率。</p>
-      <div class="formula">論文 Eq. (6)：η(z) = 4Z₁Z₂ / [(Z₁ + Z₂)² + z²]，Zᵢ = πnwᵢ²/λ</div>
-      <p class="small muted" style="margin-top:9px">此式要求同軸圓形模場、零傾角，z 為兩束腰的軸向距離；本頁假設接收模場束腰在光纖端面。論文在空氣中令 n = 1。當 w₁ = w₂ = w 時，η(z)/η(0) = [1 + (λz/2πnw²)²]<sup>−1</sup>；若 w₁ ≠ w₂，z = 0 的效率本身也會低於 100%。</p>
-      <details style="margin:13px 0 17px">
-        <summary style="font-weight:800;color:#145267">展開含波前曲率的完整計算式</summary>
-        <p class="small muted" style="margin-top:10px">對每一軸 j，在接收面令 z<sub>Rj</sub>=πnw<sub>bj</sub>²/λ、w<sub>j</sub>(z)²=w<sub>bj</sub>²[1+(z/z<sub>Rj</sub>)²]、1/R<sub>j</sub>=z/(z²+z<sub>Rj</sub>²)、k=2πn/λ；θ 以弧度代入。</p>
-        <div class="formula">a<sub>j</sub> = 1/w<sub>j</sub>(z)² + ik/(2R<sub>j</sub>),　b<sub>j</sub> = 1/w<sub>fj</sub>²,　s<sub>j</sub> = a<sub>j</sub> + b<sub>j</sub></div>
-        <div class="formula" style="margin-top:7px">η<sub>j</sub> = 2/[w<sub>j</sub>(z)w<sub>fj</sub>|s<sub>j</sub>|] · exp[−2β<sub>j</sub>r<sub>j</sub>² + 2g<sub>j</sub>r<sub>j</sub> − A<sub>j</sub>θ<sub>j</sub>²],　η=η<sub>x</sub>η<sub>y</sub></div>
-        <p class="small muted" style="margin-top:9px">β<sub>j</sub>=Re(a<sub>j</sub>b<sub>j</sub>/s<sub>j</sub>)；g<sub>j</sub>=kθ<sub>j</sub>Im(a<sub>j</sub>/s<sub>j</sub>)；A<sub>j</sub>=(k²/2)Re(1/s<sub>j</sub>)。g 項就是曲率、傾角與位移同時存在時的交互作用。此處 r<sub>j</sub> 為有號軸向分量；控制欄 r 是位移長度。符號採與 Photonica 計算器一致的位移與傾角方向。</p>
-      </details>
-      <div class="tablewrap">
-        <table class="compare" aria-label="公式對照">
-          <thead><tr><th>情況</th><th>Photonica／常用簡式</th><th>與 Wang–Su 論文的關係</th></tr></thead>
-          <tbody>
-            <tr><td>橫向位移</td><td>相同圓形模場：η/η₀ = exp[−r²/w²]；1 dB 位移 = 0.480w = 0.240 MFD。</td><td>論文 Eq. 1–3 的圓對稱、同一平面特例；兩軸可分別相乘。</td></tr>
-            <tr><td>軸向間距</td><td>相同模場：η/η₀ = [1 + (λz/2πnw²)²]<sup>−1</sup>。</td><td>論文 Eq. 6 適用於兩個不一定相等的圓形模場；相同模場簡式是 Z₁ = Z₂ 的特例。</td></tr>
-            <tr><td>相對傾角</td><td>相同模場、z=0：η/η₀ = exp[−(πnwθ/λ)²]。</td><td>等同論文 Eq. 4 的平面波前特例；θ 須以弧度代入。</td></tr>
-            <tr><td>橢圓光束</td><td>文章主式以圓對稱 w₁、w₂ 表示。</td><td>論文將 x、y 分開；旋轉對稱成像的最佳效率為 4/(2+m+1/m)，m=wₓ/wᵧ。</td></tr>
-            <tr><td>偏移＋傾角＋間距</td><td>文章列個別項；其進階計算器也處理波前曲率和交互項。</td><td>論文 Eq. 5 有偏移與傾角的交互項。本頁用複數高斯重疊一併求值，不能把各項損失固定相加。</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="small muted" style="margin-top:10px">Photonica 文章的範例表把傾角容差列於矽玻璃介質、軸向間距列於空氣；本頁的 n 則同時用於傳播與傾角計算。比較數字時須先設成相同介質。</p>
-      <p class="small muted" id="qaStatus" style="margin-top:12px">數值校驗中…</p>
+    <section class="panel formulas" id="formulas" aria-label="完整公式與統整">
+      <span class="section-number">03 / FORMULAS</span><h2>完整公式與統整</h2>
+      <p class="small muted formula-intro">先看模場決定的基準效率，再分別理解對位、角度與 z offset，最後將所有條件帶回完整的高斯光場重疊模型。下列單項簡式的其他偏差皆為零。</p>
+      <nav class="formula-nav" aria-label="公式章節"><a href="#formula-baseline">01 基準效率</a><a href="#formula-alignment">02 對位</a><a href="#formula-angle">03 角度</a><a href="#formula-z">04 Z offset</a><a href="#formula-summary">05 大統整</a></nav>
+      <section class="formula-section" id="formula-baseline">
+        <h3>01　基準效率：模場是否匹配</h3>
+        <p>各軸的接收半徑由模場直徑換算；兩端在束腰平面、沒有位移及傾斜時，效率只由模場匹配決定。x、y 軸可以有不同尺寸。</p>
+        <div class="formula"><span>w<sub>fj</sub> = MFD<sub>j</sub>/2，j ∈ {x, y}</span><span>η₀ = ∏<sub>j=x,y</sub> [2w<sub>bj</sub>w<sub>fj</sub>/(w<sub>bj</sub>² + w<sub>fj</sub>²)]</span></div>
+        <p>圓形模場的兩軸相同，因此上式化成平方；模場完全匹配時，理想基準效率為 100%。</p>
+        <div class="formula">η₀,circular = [2w<sub>b</sub>w<sub>f</sub>/(w<sub>b</sub>² + w<sub>f</sub>²)]²</div>
+        <p>入射束腰是強度下降到峰值的 1/e² 時的半徑。w<sub>b</sub>、w<sub>f</sub>、r、z 與真空波長 λ 在計算內均使用 µm；介質波數由 n 修正。</p>
+        <div class="formula">λ<sub>µm</sub> = λ<sub>nm</sub>/1000，k = 2πn/λ<sub>µm</sub></div>
+      </section>
+      <section class="formula-section" id="formula-alignment">
+        <h3>02　對位：有號位移與橫向容差</h3>
+        <p>圖中的 r 是沿指定方位 α 的有號位置；幾何距離為其絕對值。這個定義讓同一張圖能從 −10 µm 掃描至 +10 µm。</p>
+        <div class="formula"><span>x = r cosα，y = r sinα，ρ = √(x² + y²) = |r|</span><span>η(r)/η₀ = exp[−2x²/(w<sub>bx</sub>² + w<sub>fx</sub>²) − 2y²/(w<sub>by</sub>² + w<sub>fy</sub>²)]</span></div>
+        <div class="formula-pair"><div><h4>同一圓形模場的簡式</h4><div class="formula">η(r)/η₀ = exp(−r²/w²)</div></div><div><h4>任意方位的橢圓模場</h4><div class="formula"><span>C<sub>r</sub> = 2 cos²α/(w<sub>bx</sub>²+w<sub>fx</sub>²)</span><span>　　+ 2 sin²α/(w<sub>by</sub>²+w<sub>fy</sub>²)</span><span>|r|<sub>D</sub> = √(D/C<sub>r</sub>)</span></div></div></div>
+        <p>容差的 D 使用自然對數；1 dB 與半功率各自有不同門檻。半功率的精確損失約為 3.0103 dB。</p>
+        <div class="formula"><span>D<sub>1 dB</sub> = ln(10)/10，D<sub>half</sub> = ln(2)</span><span>等模場：|r|<sub>1 dB</sub> ≈ 0.480w；|r|<sub>half</sub> ≈ 0.833w</span></div>
+      </section>
+      <section class="formula-section" id="formula-angle">
+        <h3>03　角度：使用弧度的傾斜損失</h3>
+        <p>θ 是間隙介質中的有號小角度，γ 決定傾斜方位。正負號用於同一方位上的雙向掃描；近軸角度分量沿兩個座標方向分解。</p>
+        <div class="formula"><span>θ<sub>x</sub> = θ cosγ，θ<sub>y</sub> = θ sinγ；θ 以 rad 代入</span><span>η(θ)/η₀ = exp(−A<sub>x</sub>θ<sub>x</sub>² − A<sub>y</sub>θ<sub>y</sub>²)</span><span>A<sub>j</sub> = (k²/2) · w<sub>bj</sub>²w<sub>fj</sub>²/(w<sub>bj</sub>²+w<sub>fj</sub>²)</span></div>
+        <div class="formula-pair"><div><h4>同一圓形模場的簡式</h4><div class="formula">η(θ)/η₀ = exp[−(πnwθ/λ)²]</div></div><div><h4>角度容差</h4><div class="formula"><span>C<sub>θ</sub> = A<sub>x</sub> cos²γ + A<sub>y</sub> sin²γ</span><span>|θ|<sub>D</sub> = √(D/C<sub>θ</sub>)</span></div></div></div>
+        <p>角度圖與角度差滑桿均使用弧度；進階方位控制的度數會先轉換。近軸模型要求角度夠小。</p>
+        <div class="formula">θ<sub>rad</sub> = θ<sub>degree</sub> · π/180；1° ≈ 0.0174533 rad</div>
+      </section>
+      <section class="formula-section" id="formula-z">
+        <h3>04　Z offset：束腰與接收面的距離</h3>
+        <p>軸向偏差會同時改變入射光束大小與波前曲率。接收模場假設在接收面具有平坦波前；以下只分析軸向偏差。</p>
+        <div class="formula"><span>Z<sub>bj</sub> = πnw<sub>bj</sub>²/λ，Z<sub>fj</sub> = πnw<sub>fj</sub>²/λ</span><span>η(z) = ∏<sub>j=x,y</sub> [2√(Z<sub>bj</sub>Z<sub>fj</sub>)/√((Z<sub>bj</sub>+Z<sub>fj</sub>)²+z²)]</span></div>
+        <div class="formula-pair"><div><h4>圓形模場：論文 Eq. (6)</h4><div class="formula">η(z) = 4Z<sub>b</sub>Z<sub>f</sub>/[(Z<sub>b</sub>+Z<sub>f</sub>)²+z²]</div></div><div><h4>相同圓形模場</h4><div class="formula"><span>η(z)/η₀ = [1+(z/2Z<sub>R</sub>)²]<sup>−1</sup></span><span>Z<sub>R</sub> = πnw²/λ</span><span>|z|<sub>D</sub> = 2Z<sub>R</sub>√(e<sup>D</sup>−1)</span></div></div></div>
+        <p>同軸、零傾斜時，正負 z 的效率對稱。橢圓模場的軸向容差以完整兩軸公式求解，不以圓形簡式代替。</p>
+      </section>
+      <section class="formula-section" id="formula-summary">
+        <h3>05　大統整：從基準到完整耦合</h3>
+        <div class="tablewrap"><table class="summary-table" aria-label="公式大統整"><thead><tr><th>項目</th><th>控制的物理量</th><th>圓形模場的簡式</th></tr></thead><tbody>
+          <tr><td>基準效率</td><td>入射束腰與接收模場是否匹配</td><td class="math">η₀ = [2w<sub>b</sub>w<sub>f</sub>/(w<sub>b</sub>²+w<sub>f</sub>²)]²</td></tr>
+          <tr><td>對位 r</td><td>接收面上的橫向中心偏移</td><td class="math">η/η₀ = exp(−r²/w²)</td></tr>
+          <tr><td>角度 θ</td><td>介質內的光軸相對傾斜，使用 rad</td><td class="math">η/η₀ = exp[−(πnwθ/λ)²]</td></tr>
+          <tr><td>Z offset</td><td>傳播造成的模場擴展與波前曲率</td><td class="math">η/η₀ = [1+(λz/2πnw²)²]<sup>−1</sup></td></tr>
+          <tr><td>完整模型</td><td>將全部偏差代入兩軸光場重疊</td><td class="math">η = η<sub>x</sub>η<sub>y</sub></td></tr>
+        </tbody></table></div>
+        <p style="margin-top:15px">表內對位、角度與 z offset 的簡式假設兩端具有相同圓形模場；右側綠色曲線則使用左側的實際模場尺寸。橘色曲線與目前效率使用完整模型：存在 z offset 時，光束尺寸與波前曲率改變；若再加入傾角，最佳位移可能移到零點之外。</p>
+        <div class="formula"><span>η = ∏<sub>j=x,y</sub> |∫ u<sub>bj</sub>(q,z) u<sub>fj</sub>*(q−d<sub>j</sub>) e<sup>ikθ<sub>j</sub>q</sup> dq|²</span><span>各 u 為歸一化光場，d<sub>x</sub> = r cosα，d<sub>y</sub> = r sinα</span></div>
+        <details class="full-model">
+          <summary>展開完整計算式：包含波前曲率與交互項</summary>
+          <p style="margin-top:12px">下面是本頁採用的各軸封閉形式；下標 j 代表 x 或 y。位移在接收面定義，與本頁的有號掃描方向保持一致。</p>
+          <div class="model-grid"><div class="formula"><span>Z<sub>Rj</sub> = πnw<sub>bj</sub>²/λ</span><span>w<sub>j</sub>(z) = w<sub>bj</sub>√[1+(z/Z<sub>Rj</sub>)²]</span><span>a<sub>r</sub> = 1/w<sub>j</sub>(z)²</span><span>a<sub>i</sub> = kz/[2(z²+Z<sub>Rj</sub>²)]</span><span>b = 1/w<sub>fj</sub>²</span></div><div class="formula"><span>s<sub>r</sub> = a<sub>r</sub>+b，Q = s<sub>r</sub>²+a<sub>i</sub>²</span><span>B = 2/[w<sub>j</sub>(z)w<sub>fj</sub>√Q]</span><span>β = b(a<sub>r</sub>s<sub>r</sub>+a<sub>i</sub>²)/Q</span><span>G = bka<sub>i</sub>/Q</span><span>A = k²s<sub>r</sub>/(2Q)</span></div></div>
+          <div class="formula"><span>η<sub>j</sub> = B · exp[−2βd<sub>j</sub>² + 2Gd<sub>j</sub>θ<sub>j</sub> − Aθ<sub>j</sub>²]</span><span>η = η<sub>x</sub>η<sub>y</sub></span></div>
+          <p>交互項與波前曲率相關，三種偏差同時存在時不能直接相乘各項零偏差簡式。固定 z 與 θ 的位移曲線仍為高斯形，但中心與寬度可能改變。</p>
+        </details>
+        <div class="formula"><span>插入損失 IL = −10 log₁₀η</span><span>額外耦合損失 ΔIL = −10 log₁₀(η/η₀)</span></div>
+        <div class="warning"><p><strong>模型適用範圍：</strong>理想純量、近軸、單一高斯模場。結果不包含偏振、反射、吸收、像差、光柵繞射、非高斯模場或製程變動；幾何耦合計算不能直接作為實測或量產性能。角度超過約 0.087 rad 時會提示近軸適用性。</p></div>
+        <div class="sources"><strong>資料來源</strong><ul>
+          <li><a href="https://www.photonica.io/tools/fiber-coupling" target="_blank" rel="noopener">Photonica：Fiber Coupling Efficiency Calculator</a>，高斯重疊、曲率與單項容差形式。</li>
+          <li><a href="https://www.photonica.io/articles/fiber-array-attach" target="_blank" rel="noopener">Photonica：Fiber Array Attach to Photonic Chips</a>，對位容差與模場匹配背景。</li>
+          <li>L. A. Wang &amp; C. D. Su, “Tolerance Analysis of Aligning an Astigmatic Laser Diode with a Single-Mode Optical Fiber,” <em>Journal of Lightwave Technology</em> 14(12), 2757–2762 (1996)，Eq. 1–8。</li>
+        </ul></div>
+        <p class="qa" id="qaStatus">數值校驗中…</p>
+      </section>
     </section>
-    <section class="explain warning">
-      <h3>模型邊界</h3>
-      <p>本頁是理想純量、近軸、單一高斯模場的<strong>計算</strong>。不含圓柱透鏡的 ABCD 幾何、光柵耦合器繞射與頻譜、非高斯光束、像差、偏振、菲涅耳反射、膠材固化位移或製程統計。論文中的 98.2% 是特定圓柱透鏡設計案例；調整本頁束腰只能研究其輸出模場的重疊，不能宣稱重現該透鏡設計。論文報 3 dB 容差、Photonica 表格主要報 1 dB，比較時須使用同一損失門檻與參考平面。</p>
-      <p class="small" style="margin-bottom:0">論文圖 10 標成水平發散角約 3–7°、垂直約 12–28° 的高效率區；結論段落把水平／垂直文字對調，引用該數值應以圖軸為準。</p>
-    </section>
-    <footer class="footnotes">
-      <strong>資料來源與計算說明</strong>
-      <ul>
-        <li><a href="https://www.photonica.io/articles/fiber-array-attach" target="_blank" rel="noopener">Photonica, Fiber Array Attach to Photonic Chips</a>：用於 FAU 對位背景與圓形高斯模場的簡式；網頁更新日 2026-10-05。</li>
-        <li><a href="https://www.photonica.io/tools/fiber-coupling" target="_blank" rel="noopener">Photonica, Fiber Coupling Efficiency Calculator</a>：用於核對波前曲率、位移與傾角同時計算的形式。</li>
-        <li>L. A. Wang and C. D. Su, “Tolerance Analysis of Aligning an Astigmatic Laser Diode with a Single-Mode Optical Fiber,” <em>Journal of Lightwave Technology</em> 14(12), 2757–2762 (1996), Eq. 1–8、圖 8–10。</li>
-      </ul>
-    </footer>
   </main>
   <script>
   (function(){
     "use strict";
-    var ids=["lambda","medium","beamX","beamY","recvX","recvY","offsetR","gap","tilt","offsetAzimuth","tiltAzimuth","channels","pitchFau","pitchPic","anchor","yaw"];
-    var el={}; ids.forEach(function(id){el[id]=document.getElementById(id);});
-    var out={}; ["baseEta","currentEta","extraLoss","status","mfdReadout","axialReadout","axialChartContext","radialAxisLabel","radialDirection","r1","r3","ropt","tilt1","tilt3","tiltDirection","offsetRValue","gapValue","tiltValue","offsetAzimuthValue","tiltAzimuthValue","vectorReadout","radialChartContext","arraySummary","channelRows","qaStatus"].forEach(function(id){out[id]=document.getElementById(id);});
-    var canvas=document.getElementById("radialChart"), axialCanvas=document.getElementById("axialChart"), chart=document.getElementById("arrayChart");
-    var defaults={lambda:1550,medium:1,beamX:5.2,beamY:5.2,recvX:10.4,recvY:10.4,offsetR:0,gap:0,tilt:0,offsetAzimuth:0,tiltAzimuth:0,channels:16,pitchFau:127,pitchPic:127,anchor:"center",yaw:0};
-    var presets={
-      matched:{},
-      mismatch:{recvX:4,recvY:4},
-      paper:{lambda:1310,beamX:1.3,beamY:5.2,recvX:5.2,recvY:5.2,channels:1},
-      pitch:{medium:1.5,beamX:2,beamY:2,recvX:4,recvY:4,pitchFau:127.06,pitchPic:127,anchor:"first"}
-    };
-    function rad(x){return x*Math.PI/180;}
-    function axis(w0,wf,z,lambda,n,d,thetaDeg){
-      var zr=Math.PI*n*w0*w0/lambda;
-      var wz=w0*Math.sqrt(1+(z/zr)*(z/zr));
-      var k=2*Math.PI*n/lambda;
-      var ar=1/(wz*wz), ai=k*z/(2*(z*z+zr*zr)), b=1/(wf*wf);
-      var sr=ar+b, si=ai, den=sr*sr+si*si, theta=rad(thetaDeg);
-      var base=2/(wz*wf*Math.sqrt(den));
-      var beta=b*(ar*sr+ai*si)/den;
-      var g=k*theta*(ai*sr-ar*si)/den;
-      var A=.5*k*k*sr/den;
-      var logEta=Math.log(base)-2*beta*d*d+2*g*d-A*theta*theta;
-      return {eta:Math.min(1,Math.max(0,Math.exp(logEta))),logEta:logEta,beta:beta,opt:g/(2*beta),zr:zr};
+    var ids=["lambda","medium","beamX","beamY","recvX","recvY","offsetR","tilt","gap","offsetAzimuth","tiltAzimuth"];
+    var el={};ids.forEach(function(id){el[id]=document.getElementById(id);});
+    var defaults={lambda:1550,medium:1,beamX:5.2,beamY:5.2,recvX:10.4,recvY:10.4,offsetR:0,tilt:0,gap:0,offsetAzimuth:0,tiltAzimuth:0};
+    var presets={matched:{},mismatch:{recvX:4,recvY:4},paper:{lambda:1310,beamX:1.3,beamY:5.2,recvX:5.2,recvY:5.2}};
+    var out={};["baseEta","currentEta","extraLoss","status","r1","r3","tilt1","tilt3","z1","z3","rNow","tiltNow","zNow","offsetRValue","tiltValue","gapValue","offsetAzimuthValue","tiltAzimuthValue","radialContext","angularContext","axialContext","qaStatus"].forEach(function(id){out[id]=document.getElementById(id);});
+    function rad(degrees){return degrees*Math.PI/180;}
+    function axis(w0,wf,z,lambda,n,d,theta){
+      var zr=Math.PI*n*w0*w0/lambda,wz=w0*Math.sqrt(1+(z/zr)*(z/zr)),k=2*Math.PI*n/lambda;
+      var ar=1/(wz*wz),ai=k*z/(2*(z*z+zr*zr)),b=1/(wf*wf),sr=ar+b,den=sr*sr+ai*ai;
+      var base=2/(wz*wf*Math.sqrt(den)),beta=b*(ar*sr+ai*ai)/den,G=b*k*ai/den,A=.5*k*k*sr/den;
+      var logEta=Math.log(base)-2*beta*d*d+2*G*d*theta-A*theta*theta;
+      return {eta:Math.min(1,Math.max(0,Math.exp(logEta))),logEta:logEta,beta:beta,opt:G*theta/(2*beta),zr:zr};
     }
-    function read(){
-      var p={};
-      ids.forEach(function(id){p[id]=id==="anchor"?el[id].value:Number(el[id].value);});
-      var positive=["lambda","medium","beamX","beamY","recvX","recvY","channels","pitchFau","pitchPic"];
-      if(ids.some(function(id){return id!=="anchor"&&!Number.isFinite(p[id]);})) throw Error("請輸入有效數字。");
-      if(positive.some(function(id){return p[id]<=0;})) throw Error("波長、模場、折射率、通道數與節距都必須大於 0。");
-      if(p.offsetR<0) throw Error("位移 r 必須大於或等於 0。");
-      if(p.channels<1||p.channels>96||!Number.isInteger(p.channels)) throw Error("通道數請設為 1–96 的整數。");
-      if(p.tilt<0||p.tilt>45) throw Error("傾角大小須介於 0° 與 45°。");
-      return p;
-    }
+    function directionVector(degrees){return {x:Math.cos(rad(degrees)),y:Math.sin(rad(degrees))};}
+    function radialOffset(p,r){var u=directionVector(p.offsetAzimuth),v=r===undefined?p.offsetR:r;return {x:v*u.x,y:v*u.y};}
+    function tiltComponents(p){var u=directionVector(p.tiltAzimuth);return {x:p.tilt*u.x,y:p.tilt*u.y};}
     function joint(p,x,y){
-      var lambda=p.lambda/1000,t=tiltComponents(p);
-      var ax=axis(p.beamX,p.recvX/2,p.gap,lambda,p.medium,x,t.x);
-      var ay=axis(p.beamY,p.recvY/2,p.gap,lambda,p.medium,y,t.y);
-      return {eta:Math.min(1,ax.eta*ay.eta),ax:ax,ay:ay};
+      var t=tiltComponents(p),lambda=p.lambda/1000;
+      var ax=axis(p.beamX,p.recvX/2,p.gap,lambda,p.medium,x,t.x),ay=axis(p.beamY,p.recvY/2,p.gap,lambda,p.medium,y,t.y);
+      return {eta:Math.min(1,ax.eta*ay.eta),logEta:ax.logEta+ay.logEta,ax:ax,ay:ay};
     }
+    function efficiency(p){var d=radialOffset(p);return joint(p,d.x,d.y).eta;}
+    function origin(p){return Object.assign({},p,{offsetR:0,tilt:0,gap:0});}
     function axialOnly(p,z){
       var lambda=p.lambda/1000;
-      function oneAxis(wb,wf){
-        var z1=Math.PI*p.medium*wb*wb/lambda, z2=Math.PI*p.medium*wf*wf/lambda;
-        return 2*Math.sqrt(z1*z2)/Math.hypot(z1+z2,z);
-      }
-      return oneAxis(p.beamX,p.recvX/2)*oneAxis(p.beamY,p.recvY/2);
+      function one(wb,wf){var a=Math.PI*p.medium*wb*wb/lambda,b=Math.PI*p.medium*wf*wf/lambda;return 2*Math.sqrt(a*b)/Math.hypot(a+b,z);}
+      return one(p.beamX,p.recvX/2)*one(p.beamY,p.recvY/2);
     }
     function axialLimit(p,ratio){
-      var base=axialOnly(p,0),lo=0,hi=1;
-      while(axialOnly(p,hi)/base>ratio&&hi<1e12) hi*=2;
-      for(var i=0;i<65;i++){
-        var mid=(lo+hi)/2;
-        if(axialOnly(p,mid)/base>ratio) lo=mid;else hi=mid;
-      }
-      return (lo+hi)/2;
-    }
-    function fixed(n,d){return Number.isFinite(n)?(Math.abs(n)<.5*Math.pow(10,-d)?0:n).toFixed(d):"—";}
-    function pct(v){return (100*v).toFixed(v<.01?3:1)+"%";}
-    function loss(v){return v>0?-10*Math.log10(v):Infinity;}
-    function tolerance(beta,half){return Math.sqrt((half?Math.log(2):Math.log(10)/10)/(2*beta));}
-    function directionVector(angle){return {x:Math.cos(rad(angle)),y:Math.sin(rad(angle))};}
-    function radialOffset(p,r){
-      var u=directionVector(p.offsetAzimuth),m=r===undefined?p.offsetR:r;
-      return {x:m*u.x,y:m*u.y};
-    }
-    function tiltComponents(p){
-      var u=directionVector(p.tiltAzimuth);
-      return {x:p.tilt*u.x,y:p.tilt*u.y};
+      var base=axialOnly(p,0),lo=0,hi=1;while(axialOnly(p,hi)/base>ratio&&hi<1e12)hi*=2;
+      for(var i=0;i<65;i++){var mid=(lo+hi)/2;if(axialOnly(p,mid)/base>ratio)lo=mid;else hi=mid;}return (lo+hi)/2;
     }
     function radialProfile(p,current){
-      var u=directionVector(p.offsetAzimuth);
-      var beta=current.ax.beta*u.x*u.x+current.ay.beta*u.y*u.y;
-      var opt=(current.ax.beta*current.ax.opt*u.x+current.ay.beta*current.ay.opt*u.y)/beta;
-      return {beta:beta,opt:opt};
+      var u=directionVector(p.offsetAzimuth),beta=current.ax.beta*u.x*u.x+current.ay.beta*u.y*u.y;
+      return {beta:beta,opt:(current.ax.beta*current.ax.opt*u.x+current.ay.beta*current.ay.opt*u.y)/beta};
     }
-    function radialBoundary(beta,opt,half){
-      var best=Math.max(0,opt);
-      var D=half?Math.log(2):Math.log(10)/10;
-      return opt+Math.sqrt(Math.pow(best-opt,2)+D/(2*beta));
+    function radialLimit(p,D){var profile=radialProfile(origin(p),joint(origin(p),0,0));return Math.sqrt(D/(2*profile.beta));}
+    function angularLimit(p,D){
+      var u=directionVector(p.tiltAzimuth),k=2*Math.PI*p.medium/(p.lambda/1000);
+      function A(wb,wf){return .5*k*k*wb*wb*wf*wf/(wb*wb+wf*wf);}
+      return Math.sqrt(D/(A(p.beamX,p.recvX/2)*u.x*u.x+A(p.beamY,p.recvY/2)*u.y*u.y));
     }
-    function angularTolerance(wb,wf,lambda,n,half){
-      var k=2*Math.PI*n/lambda;
-      var A=.5*k*k*wb*wb*wf*wf/(wb*wb+wf*wf);
-      var D=half?Math.log(2):Math.log(10)/10;
-      return Math.sqrt(D/A)*180/Math.PI;
+    function read(){
+      var p={};ids.forEach(function(id){if(el[id].value.trim()==="")throw Error("請填寫所有光場參數。");p[id]=Number(el[id].value);});
+      if(ids.some(function(id){return !Number.isFinite(p[id]);}))throw Error("請輸入有效數字。");
+      if(["lambda","medium","beamX","beamY","recvX","recvY"].some(function(id){return p[id]<=0;}))throw Error("波長、折射率與模場尺寸必須大於 0。");
+      if(p.lambda<100||p.lambda>5000||p.medium<1||p.medium>3||p.beamX<.05||p.beamY<.05||p.recvX<.1||p.recvY<.1)throw Error("請使用欄位所示的有效範圍。");
+      return p;
     }
-    function angularLimit(p,half){
-      var u=directionVector(p.tiltAzimuth),lambda=p.lambda/1000;
-      var tx=angularTolerance(p.beamX,p.recvX/2,lambda,p.medium,half);
-      var ty=angularTolerance(p.beamY,p.recvY/2,lambda,p.medium,half);
-      return 1/Math.sqrt(u.x*u.x/(tx*tx)+u.y*u.y/(ty*ty));
-    }
+    function fixed(value,digits){return Number.isFinite(value)?(Math.abs(value)<.5*Math.pow(10,-digits)?0:value).toFixed(digits):"—";}
+    function pct(value){return (100*value).toFixed(value<.01?3:1)+"%";}
+    function fmt(value,unit){return fixed(value,unit==="rad"?4:2)+" "+unit;}
     function update(){
-      var p;
-      try{p=read();}catch(e){out.status.className="status error";out.status.textContent=e.message;return;}
-      var origin=Object.assign({},p,{gap:0,offsetR:0,tilt:0});
-      var offset=radialOffset(p);
-      var tilt=tiltComponents(p);
-      out.offsetRValue.textContent=fixed(p.offsetR,2)+" µm";
-      out.gapValue.textContent=fixed(p.gap,1)+" µm";
-      out.tiltValue.textContent=fixed(p.tilt,2)+"°";
-      out.offsetAzimuthValue.textContent=fixed(p.offsetAzimuth,0)+"°";
-      out.tiltAzimuthValue.textContent=fixed(p.tiltAzimuth,0)+"°";
-      ["offsetR","gap","tilt","offsetAzimuth","tiltAzimuth"].forEach(function(id){el[id].setAttribute("aria-valuetext",out[id+"Value"].textContent);});
-      out.vectorReadout.textContent="x = "+fixed(offset.x,2)+" µm，y = "+fixed(offset.y,2)+" µm；θₓ = "+fixed(tilt.x,2)+"°，θᵧ = "+fixed(tilt.y,2)+"°（近軸分量）。";
-      var base=joint(origin,0,0).eta, current=joint(p,offset.x,offset.y);
-      out.baseEta.textContent=pct(base);
-      out.currentEta.textContent=pct(current.eta);
-      out.extraLoss.textContent=fixed(loss(current.eta)-loss(base),2)+" dB";
-      out.mfdReadout.textContent="入射光束：MFDₓ ≈ "+fixed(2*p.beamX,2)+" µm，MFDᵧ ≈ "+fixed(2*p.beamY,2)+" µm。";
-      var zEta=axialOnly(p,p.gap),z1=axialLimit(p,Math.pow(10,-.1)),z3=axialLimit(p,.5);
-      out.axialReadout.textContent="目前 z = "+fixed(p.gap,2)+" µm：僅 z 的效率 "+pct(zEta)+"，相對 z = 0 額外損失 "+fixed(loss(zEta)-loss(axialOnly(p,0)),2)+" dB；1 dB 容差 ±"+fixed(z1,2)+" µm，半功率容差 ±"+fixed(z3,2)+" µm。";
-      out.axialChartContext.textContent="目前 z = "+fixed(p.gap,2)+" µm";
-      var selected=radialProfile(p,current);
-      var bound1=radialBoundary(selected.beta,selected.opt,false);
-      var bound3=radialBoundary(selected.beta,selected.opt,true);
-      var bestR=Math.max(0,selected.opt);
-      var direction="α = "+fixed(p.offsetAzimuth,0)+"°";
-      out.radialAxisLabel.textContent="徑向位移 r";
-      out.radialDirection.textContent=direction;
-      out.r1.textContent=fixed(bound1,2)+" µm";
-      out.r3.textContent=fixed(bound3,2)+" µm";
-      out.ropt.textContent=fixed(bestR,2)+" µm";
-      out.radialChartContext.textContent=direction+" · 固定 z、θ";
-      out.tiltDirection.textContent="θ（γ = "+fixed(p.tiltAzimuth,0)+"°）";
-      out.tilt1.textContent=fixed(angularLimit(p,false),2)+"°";
-      out.tilt3.textContent=fixed(angularLimit(p,true),2)+"°";
+      var p;try{p=read();}catch(error){out.status.className="status error";out.status.textContent=error.message;["baseEta","currentEta","extraLoss","r1","r3","rNow","tilt1","tilt3","tiltNow","z1","z3","zNow"].forEach(function(id){out[id].textContent="—";});["radialChart","angularChart","axialChart"].forEach(function(id){var canvas=document.getElementById(id);canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height);canvas.setAttribute("aria-label","請先填寫有效參數");});window.fiberCouplingModel.current=null;return;}
+      var base=joint(origin(p),0,0),d=radialOffset(p),current=joint(p,d.x,d.y);
+      out.baseEta.textContent=pct(base.eta);out.currentEta.textContent=pct(current.eta);out.extraLoss.textContent=fixed((base.logEta-current.logEta)*10/Math.log(10),2)+" dB";
+      out.offsetRValue.textContent=fixed(p.offsetR,2)+" µm";out.tiltValue.textContent=fixed(p.tilt,4)+" rad";out.gapValue.textContent=fixed(p.gap,1)+" µm";
+      out.offsetAzimuthValue.textContent=fixed(p.offsetAzimuth,0)+"°";out.tiltAzimuthValue.textContent=fixed(p.tiltAzimuth,0)+"°";
+      ["offsetR","tilt","gap","offsetAzimuth","tiltAzimuth"].forEach(function(id){el[id].setAttribute("aria-valuetext",out[id+"Value"].textContent);});
+      var D1=Math.log(10)/10,D3=Math.log(2),r1=radialLimit(p,D1),r3=radialLimit(p,D3),t1=angularLimit(p,D1),t3=angularLimit(p,D3),z1=axialLimit(p,Math.exp(-D1)),z3=axialLimit(p,.5);
+      [["r",r1,r3,p.offsetR,"µm"],["tilt",t1,t3,p.tilt,"rad"],["z",z1,z3,p.gap,"µm"]].forEach(function(row){out[row[0]+"1"].textContent="±"+fmt(row[1],row[4]);out[row[0]+"3"].textContent="±"+fmt(row[2],row[4]);out[row[0]+"Now"].textContent=fmt(row[3],row[4]);});
       var warnings=[];
-      if(p.tilt>5) warnings.push("傾角超過 5°；近軸近似需謹慎。");
-      if(Math.abs(p.gap)>0&&p.tilt!==0) warnings.push("間距與傾角同時存在，局部最佳橫向位置可能偏離 0。");
-      out.status.className="status";
-      out.status.textContent=warnings.length?warnings.join(" "):"計算採功率重疊；0 dB 額外損失表示維持此模場組合的最佳基準效率。";
-      drawRadial(p,bound1,bound3,bestR);
-      drawAxial(p,z1,z3);
-      drawArray(p);
+      if(Math.abs(p.tilt)>rad(5))warnings.push("角度差超過 0.087 rad，請留意近軸模型的適用性。");
+      if(p.gap!==0&&p.tilt!==0)warnings.push("間距與傾角同時存在，橘色曲線的最佳對位可能偏離零點。");
+      if(r3>10||t3>.1)warnings.push("部分單項容差超出圖域，完整數值請見上表。");
+      out.status.className="status";out.status.textContent=warnings.length?warnings.join(" "):"結果採理想高斯光場的功率重疊；額外損失以相同模場的零偏差效率為基準。";
+      out.radialContext.textContent="−10 ～ +10 µm · α "+fixed(p.offsetAzimuth,0)+"°";
+      out.angularContext.textContent="−0.100 ～ +0.100 rad · γ "+fixed(p.tiltAzimuth,0)+"°";
+      var zSpan=Math.max(50,Math.ceil(z3*1.4/10)*10,Math.ceil(Math.abs(p.gap)*1.2/10)*10);
+      out.axialContext.textContent="−"+fixed(zSpan,0)+" ～ +"+fixed(zSpan,0)+" µm";
+      drawPlot(p,{id:"radialChart",key:"offsetR",min:-10,max:10,current:p.offsetR,t1:r1,t3:r3,label:"位移 r（µm）",digits:1});
+      drawPlot(p,{id:"angularChart",key:"tilt",min:-.1,max:.1,current:p.tilt,t1:t1,t3:t3,label:"角度差 θ（rad）",digits:3});
+      drawPlot(p,{id:"axialChart",key:"gap",min:-zSpan,max:zSpan,current:p.gap,t1:z1,t3:z3,label:"Z offset（µm）",digits:0});
+      window.fiberCouplingModel.current={parameters:p,eta:current.eta,baseline:base.eta,tolerances:{r1:r1,r3:r3,theta1:t1,theta3:t3,z1:z1,z3:z3}};
     }
-    function drawAxial(p,z1,z3){
-      var mobile=window.innerWidth<690;
-      axialCanvas.width=mobile?600:900;
-      axialCanvas.height=mobile?440:400;
-      var ctx=axialCanvas.getContext("2d"),w=axialCanvas.width,h=axialCanvas.height;
-      var left=62,top=22,right=18,bottom=58,plotW=w-left-right,plotH=h-top-bottom;
-      var span=Math.max(2,Math.abs(p.gap)*1.25,z3*1.6),offset=radialOffset(p);
-      function totalAt(z){return joint(Object.assign({},p,{gap:z}),offset.x,offset.y).eta;}
-      var maxSample=axialOnly(p,0);
-      for(var k=0;k<=220;k++) maxSample=Math.max(maxSample,totalAt(-span+2*span*k/220));
-      var maxEta=Math.min(1,Math.max(.1,Math.ceil(maxSample*10)/10));
-      function px(z){return left+(z+span)/(2*span)*plotW;}
-      function py(eta){return top+plotH-eta/maxEta*plotH;}
-      ctx.clearRect(0,0,w,h);
-      ctx.fillStyle="#f6fafb";ctx.fillRect(left,top,plotW,plotH);
-      ctx.strokeStyle="#dce7eb";ctx.lineWidth=1;ctx.fillStyle="#526c7c";ctx.font="15px system-ui";
-      for(var q=0;q<=4;q++){
-        var yy=top+plotH-q*plotH/4;
-        ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(left+plotW,yy);ctx.stroke();
-        ctx.textAlign="right";ctx.fillText(fixed(maxEta*q*25,0)+"%",left-7,yy+5);
-      }
-      [-z3,-z1,z1,z3].forEach(function(z){
-        ctx.beginPath();ctx.setLineDash([6,5]);ctx.moveTo(px(z),top);ctx.lineTo(px(z),top+plotH);
-        ctx.strokeStyle=Math.abs(z)===z1?"#d34f30":"#d99527";ctx.lineWidth=1.5;ctx.stroke();ctx.setLineDash([]);
-      });
-      function curve(fn,color,dash){
-        ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=3.5;ctx.setLineDash(dash);
-        for(var i=0;i<=300;i++){
-          var z=-span+2*span*i/300,x=px(z),y=py(fn(z));
-          if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-        }
-        ctx.stroke();ctx.setLineDash([]);
-      }
-      curve(function(z){return axialOnly(p,z);},"#087e87",[]);
-      curve(totalAt,"#e7772a",[9,5]);
-      ctx.beginPath();ctx.arc(px(p.gap),py(totalAt(p.gap)),6,0,Math.PI*2);
-      ctx.fillStyle="#e7772a";ctx.fill();ctx.lineWidth=2;ctx.strokeStyle="#fff";ctx.stroke();
-      ctx.strokeStyle="#78909c";ctx.lineWidth=1;ctx.strokeRect(left+.5,top+.5,plotW,plotH);
-      ctx.fillStyle="#526c7c";ctx.font="15px system-ui";ctx.textAlign="center";
-      for(var t=0;t<=4;t++){
-        var zTick=-span+span*t/2;
-        ctx.fillText(fixed(zTick,Math.abs(span)<10?1:0),px(zTick),top+plotH+21);
-      }
-      ctx.fillText("間距 z（µm）",left+plotW/2,h-8);
-      ctx.save();ctx.translate(16,top+plotH/2);ctx.rotate(-Math.PI/2);ctx.fillText("耦合效率 η",0,0);ctx.restore();
+    function drawPlot(p,options){
+      var canvas=document.getElementById(options.id),width=canvas.getBoundingClientRect().width,mobile=window.innerWidth<=600,height=width/(mobile?1.5:2.85),scale=Math.min(window.devicePixelRatio||1,2);
+      canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);canvas.style.height=height+"px";
+      var ctx=canvas.getContext("2d");ctx.scale(scale,scale);
+      var left=45,top=13,right=12,bottom=42,plotW=width-left-right,plotH=height-top-bottom;
+      function px(v){return left+(v-options.min)/(options.max-options.min)*plotW;}function py(v){return top+plotH*(1-v);}
+      var zero=origin(p);function single(v){var q=Object.assign({},zero);q[options.key]=v;return efficiency(q);}function combined(v){var q=Object.assign({},p);q[options.key]=v;return efficiency(q);}
+      canvas.dataset.min=options.min;canvas.dataset.max=options.max;canvas.dataset.unit=options.key==="tilt"?"rad":"µm";
+      ctx.fillStyle="#f6fafb";ctx.fillRect(left,top,plotW,plotH);ctx.strokeStyle="#dce7eb";ctx.lineWidth=1;ctx.font="11px system-ui";ctx.fillStyle="#526c7c";
+      for(var q=0;q<=4;q++){var value=q/4,y=py(value);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(left+plotW,y);ctx.stroke();ctx.textAlign="right";ctx.fillText(Math.round(100*value)+"%",left-7,y+4);}
+      ctx.save();ctx.beginPath();ctx.rect(left,top,plotW,plotH);ctx.clip();
+      [[options.t1,"#bd4854",[5,4]],[options.t3,"#c18b24",[2,4]]].forEach(function(entry){[-entry[0],entry[0]].forEach(function(v){if(v<options.min||v>options.max)return;ctx.beginPath();ctx.setLineDash(entry[2]);ctx.lineWidth=1.3;ctx.strokeStyle=entry[1];ctx.moveTo(px(v),top);ctx.lineTo(px(v),top+plotH);ctx.stroke();});});
+      function curve(fn,color,dash){ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2.4;ctx.setLineDash(dash);for(var i=0;i<=300;i++){var v=options.min+(options.max-options.min)*i/300,x=px(v),y=py(fn(v));if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();}
+      curve(single,"#087e87",[]);curve(combined,"#d56b29",[7,4]);ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(px(options.current),py(combined(options.current)),4.5,0,Math.PI*2);ctx.fillStyle="#d56b29";ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle="#fff";ctx.stroke();ctx.restore();
+      ctx.setLineDash([]);ctx.lineWidth=1;ctx.strokeStyle="#78909c";ctx.strokeRect(left+.5,top+.5,plotW,plotH);
+      ctx.fillStyle="#526c7c";ctx.font="11px system-ui";ctx.textAlign="center";
+      for(var t=0;t<=4;t++){var tick=options.min+(options.max-options.min)*t/4;ctx.fillText(fixed(tick,options.digits),px(tick),top+plotH+17);}
+      ctx.font="12px system-ui";ctx.fillText(options.label,left+plotW/2,height-5);ctx.save();ctx.translate(11,top+plotH/2);ctx.rotate(-Math.PI/2);ctx.fillText("耦合效率",0,0);ctx.restore();
+      canvas.setAttribute("aria-label",options.label+"，掃描 "+options.min+" 至 "+options.max+"；目前效率 "+pct(combined(options.current))+"；單項 1 dB 容差 ±"+fmt(options.t1,options.key==="tilt"?"rad":"µm"));
     }
-    function drawRadial(p,bound1,bound3,bestR){
-      var ctx=canvas.getContext("2d"), w=canvas.width,h=canvas.height;
-      ctx.clearRect(0,0,w,h);
-      var left=62,top=24,right=18,bottom=58,plotW=w-left-right,plotH=h-top-bottom;
-      var maxR=Math.max(2,p.offsetR*1.25,bound3*1.35,bestR*1.5);
-      function etaAt(r){var o=radialOffset(p,r);return joint(p,o.x,o.y).eta;}
-      var bestEta=etaAt(bestR);
-      var maxEta=Math.min(1,Math.max(.1,Math.ceil(bestEta*10)/10));
-      function px(r){return left+r/maxR*plotW;}
-      function py(eta){return top+plotH-(eta/maxEta)*plotH;}
-      ctx.fillStyle="#f6fafb";ctx.fillRect(left,top,plotW,plotH);
-      ctx.strokeStyle="#dce7eb";ctx.lineWidth=1;ctx.fillStyle="#526c7c";ctx.font="15px system-ui";
-      for(var q=0;q<=4;q++){
-        var yy=top+plotH-q*plotH/4;
-        ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(left+plotW,yy);ctx.stroke();
-        ctx.textAlign="right";ctx.fillText(fixed(maxEta*q*25,0)+"%",left-7,yy+5);
-      }
-      [bound1,bound3].forEach(function(r,i){
-        ctx.beginPath();ctx.setLineDash([6,5]);ctx.moveTo(px(r),top);ctx.lineTo(px(r),top+plotH);
-        ctx.strokeStyle=i===0?"#d34f30":"#d99527";ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
-      });
-      ctx.beginPath();ctx.strokeStyle="#087e87";ctx.lineWidth=4;
-      for(var i=0;i<=220;i++){
-        var rr=maxR*i/220,xx=px(rr),yy=py(etaAt(rr));
-        if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
-      }
-      ctx.stroke();
-      ctx.beginPath();ctx.arc(px(p.offsetR),py(etaAt(p.offsetR)),6,0,Math.PI*2);
-      ctx.fillStyle="#e7772a";ctx.fill();ctx.lineWidth=2;ctx.strokeStyle="#fff";ctx.stroke();
-      ctx.strokeStyle="#78909c";ctx.lineWidth=1;ctx.strokeRect(left+.5,top+.5,plotW,plotH);
-      ctx.fillStyle="#526c7c";ctx.font="15px system-ui";ctx.textAlign="center";
-      for(var t=0;t<=4;t++){var xr=maxR*t/4;ctx.fillText(fixed(xr,1),px(xr),top+plotH+21);}
-      ctx.fillText("位移 r（µm）",left+plotW/2,h-8);
-      ctx.save();ctx.translate(16,top+plotH/2);ctx.rotate(-Math.PI/2);ctx.fillText("耦合效率 η",0,0);ctx.restore();
-    }
-    function drawArray(p){
-      var entries=[],n=p.channels,anchor=p.anchor==="first"?0:(n-1)/2,phi=rad(p.yaw);
-      var base=radialOffset(p);
-      for(var i=0;i<n;i++){
-        var t=i-anchor, x=base.x+t*p.pitchFau*Math.sin(phi), y=base.y+t*(p.pitchFau*Math.cos(phi)-p.pitchPic);
-        entries.push({index:i+1,x:x,y:y,eta:joint(p,x,y).eta});
-      }
-      var values=entries.map(function(e){return e.eta;}),min=Math.min.apply(null,values),max=Math.max.apply(null,values);
-      var mean=values.reduce(function(a,b){return a+b;},0)/n;
-      out.arraySummary.textContent="平均 "+pct(mean)+" · 最差 "+pct(min)+" · 跨通道 "+fixed(loss(min)-loss(max),2)+" dB";
-      var mobile=window.innerWidth<690;
-      var W=mobile?380:760,H=mobile?260:360,L=mobile?43:47,R=mobile?8:14,T=mobile?12:20,B=mobile?37:42,plotW=W-L-R,plotH=H-T-B,barW=plotW/n;
-      chart.setAttribute("viewBox","0 0 "+W+" "+H);
-      var fontSize=mobile?14:12;
-      var svg='<rect x="'+L+'" y="'+T+'" width="'+plotW+'" height="'+plotH+'" fill="#f6fafb"/>';
-      [0,.25,.5,.75,1].forEach(function(q){
-        var yy=T+plotH*(1-q);
-        svg+='<line x1="'+L+'" x2="'+(L+plotW)+'" y1="'+yy+'" y2="'+yy+'" stroke="#dce7eb"/>';
-        svg+='<text x="'+(L-7)+'" y="'+(yy+4)+'" text-anchor="end" fill="#607785" font-size="'+fontSize+'">'+Math.round(q*100)+'%</text>';
-      });
-      entries.forEach(function(e,i){
-        var bh=Math.max(1,e.eta*plotH),x=L+i*barW+Math.min(2,barW*.12),y=T+plotH-bh;
-        var width=Math.max(1,barW-Math.min(4,barW*.24));
-        var fill=e.eta<.5?"#d99527":"#087e87";
-        svg+='<rect x="'+fixed(x,2)+'" y="'+fixed(y,2)+'" width="'+fixed(width,2)+'" height="'+fixed(bh,2)+'" rx="2" fill="'+fill+'"><title>通道 '+e.index+'：'+pct(e.eta)+'；位移 ('+fixed(e.x,2)+', '+fixed(e.y,2)+') µm</title></rect>';
-      });
-      var marks=[0,Math.floor((n-1)/2),n-1].filter(function(v,i,a){return a.indexOf(v)===i;});
-      marks.forEach(function(i){svg+='<text x="'+fixed(L+(i+.5)*barW,2)+'" y="'+(H-13)+'" text-anchor="middle" fill="#506d7d" font-size="'+fontSize+'">'+(i+1)+'</text>';});
-      svg+='<text x="'+(L+plotW/2)+'" y="'+(H-1)+'" text-anchor="middle" fill="#506d7d" font-size="'+fontSize+'">通道編號</text>';
-      chart.innerHTML=svg;
-      chart.setAttribute("aria-label",n+" 通道效率；平均 "+pct(mean)+"，最差 "+pct(min));
-      out.channelRows.innerHTML=entries.map(function(e){
-        return '<tr><td>'+e.index+'</td><td>'+fixed(Math.hypot(e.x,e.y),3)+'</td><td>'+pct(e.eta)+'</td><td>'+fixed(loss(e.eta),2)+' dB</td></tr>';
-      }).join("");
-    }
-    function setPreset(name){
-      var p=Object.assign({},defaults,presets[name]);
-      ids.forEach(function(id){el[id].value=p[id];});
-      document.querySelectorAll(".preset").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.preset===name?"true":"false");});
-      update();
-    }
+    function setPreset(name){var p=Object.assign({},defaults,presets[name]);ids.forEach(function(id){el[id].value=p[id];});document.querySelectorAll(".preset").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.preset===name?"true":"false");});update();}
     function selfCheck(){
-      function close(a,b,t){return Math.abs(a-b)<t;}
-      var p=Object.assign({},defaults,{channels:1});
-      var z=joint(p,0,0).eta;
-      var lateral=joint(p,2,0).eta;
-      p.gap=50;var gap=joint(p,0,0).eta;
-      var combined=joint(p,2,0).eta;
-      var paper=Object.assign({},defaults,presets.paper),paperEta=joint(paper,0,0).eta;
-      var tilt=Object.assign({},defaults,{tilt:1}),tiltEta=joint(tilt,0,0).eta;
-      var expectedGap=1/(1+Math.pow(1.55*50/(2*Math.PI*5.2*5.2),2));
-      var expectedTilt=Math.exp(-Math.pow(Math.PI*5.2*rad(1)/1.55,2));
-      var unequal=Object.assign({},defaults,{beamX:3,beamY:3,recvX:10,recvY:10,gap:17});
-      var zr1=Math.PI*3*3/1.55,zr2=Math.PI*5*5/1.55;
-      var expectedEq6=4*zr1*zr2/(Math.pow(zr1+zr2,2)+17*17);
-      var paperAxial=Object.assign({},paper,{gap:17});
-      var expectedZ1=2*Math.PI*5.2*5.2/1.55*Math.sqrt(Math.pow(10,.1)-1);
-      var vectorCase=Object.assign({},defaults,{offsetR:5,offsetAzimuth:Math.atan2(4,3)*180/Math.PI});
-      var vector=radialOffset(vectorCase);
-      var rotatedTilt=Object.assign({},tilt,{tiltAzimuth:37});
-      var combinedPolar=Object.assign({},defaults,{offsetR:2,gap:50,tilt:1});
-      var rotatedPolar=Object.assign({},combinedPolar,{offsetAzimuth:37,tiltAzimuth:37});
-      var polarOffset=radialOffset(rotatedPolar);
-      var ellipse=Object.assign({},paper,{offsetAzimuth:37,tiltAzimuth:64,tilt:1,gap:17});
-      var profile=radialProfile(ellipse,joint(ellipse,0,0)),bestR=Math.max(0,profile.opt);
-      var thresholdR=radialBoundary(profile.beta,profile.opt,false);
-      var bestOffset=radialOffset(ellipse,bestR),thresholdOffset=radialOffset(ellipse,thresholdR);
-      var matchedProfile=radialProfile(combinedPolar,joint(combinedPolar,0,0));
-      var checks=[
-        close(z,1,1e-12),
-        close(lateral,Math.exp(-4/(5.2*5.2)),1e-12),
-        close(gap,expectedGap,1e-12),
-        close(combined,.732,.002),
-        close(paperEta,4/(2+.25+4),1e-12),
-        close(tiltEta,expectedTilt,1e-12),
-        close(2*5.2,10.4,1e-12),
-        close(angularTolerance(5.2,5.2,1.55,1,false),2.61,.01),
-        close(joint(unequal,0,0).eta,expectedEq6,1e-12),
-        close(axialOnly(paperAxial,17),joint(paperAxial,0,0).eta,1e-12),
-        close(axialLimit(defaults,Math.pow(10,-.1)),expectedZ1,1e-9),
-        close(vector.x,3,1e-12)&&close(vector.y,4,1e-12)&&close(Math.hypot(vector.x,vector.y),5,1e-12),
-        close(joint(rotatedTilt,0,0).eta,expectedTilt,1e-12),
-        close(joint(rotatedPolar,polarOffset.x,polarOffset.y).eta,joint(combinedPolar,2,0).eta,1e-12),
-        close(joint(ellipse,thresholdOffset.x,thresholdOffset.y).eta/joint(ellipse,bestOffset.x,bestOffset.y).eta,Math.pow(10,-.1),1e-12),
-        close(matchedProfile.opt,combinedPolar.gap*rad(combinedPolar.tilt)/2,1e-12)
-      ];
-      var passed=checks.filter(Boolean).length;
-      out.qaStatus.textContent="內建數值核對 "+passed+"/"+checks.length+"：高斯簡式、論文 Eq. 6、橢圓模場、r² = x² + y²、總傾角、圓形模場旋轉不變性、任意方位的徑向容差及 z/θ 交互項；其中位移加間距對照 Photonica 範例 73.2%。";
-      out.qaStatus.style.color=passed===checks.length?"#257166":"#ad2b2b";
-      window.fiberCouplingModel={axis:axis,joint:joint,radialOffset:radialOffset,tiltComponents:tiltComponents,radialProfile:radialProfile,angularLimit:angularLimit,axialOnly:axialOnly,axialLimit:axialLimit,selfCheck:checks};
+      var tests=[];function close(name,actual,expected,tolerance){tests.push({name:name,actual:actual,expected:expected,pass:Math.abs(actual-expected)<(tolerance||1e-12)});}
+      var p=Object.assign({},defaults),oneDegree=rad(1),D1=Math.log(10)/10,D3=Math.log(2),paper=Object.assign({},defaults,presets.paper);
+      close("等模場",efficiency(p),1);close("橫向位移",efficiency(Object.assign({},p,{offsetR:2})),Math.exp(-4/(5.2*5.2)));
+      close("負位移",efficiency(Object.assign({},p,{offsetR:-2})),efficiency(Object.assign({},p,{offsetR:2})));
+      close("軸向間距",efficiency(Object.assign({},p,{gap:50})),1/(1+Math.pow(1.55*50/(2*Math.PI*5.2*5.2),2)));
+      close("負間距",efficiency(Object.assign({},p,{gap:-50})),efficiency(Object.assign({},p,{gap:50})));
+      close("位移加間距",efficiency(Object.assign({},p,{offsetR:2,gap:50})),.732,.002);
+      close("橢圓模場",efficiency(paper),4/(2+.25+4));close("弧度傾角",efficiency(Object.assign({},p,{tilt:oneDegree})),Math.exp(-Math.pow(Math.PI*5.2*oneDegree/1.55,2)));
+      close("負傾角",efficiency(Object.assign({},p,{tilt:-oneDegree})),efficiency(Object.assign({},p,{tilt:oneDegree})));
+      close("MFD 半徑換算",p.recvX/2,p.beamX);close("角度容差 rad",angularLimit(p,D1),1.55/(Math.PI*5.2)*Math.sqrt(D1));
+      var unequal=Object.assign({},p,{beamX:3,beamY:3,recvX:10,recvY:10,gap:17}),a=Math.PI*9/1.55,b=Math.PI*25/1.55;
+      close("圓形軸向 Eq. 6",efficiency(unequal),4*a*b/(Math.pow(a+b,2)+17*17));
+      close("橢圓軸向",efficiency(Object.assign({},paper,{gap:17})),axialOnly(paper,17));
+      close("軸向 1 dB",axialLimit(p,Math.pow(10,-.1)),2*Math.PI*5.2*5.2/1.55*Math.sqrt(Math.pow(10,.1)-1),1e-9);
+      var vector=radialOffset(Object.assign({},p,{offsetR:5,offsetAzimuth:Math.atan2(4,3)*180/Math.PI}));close("方位 x",vector.x,3);close("方位 y",vector.y,4);
+      close("圓形角度旋轉",efficiency(Object.assign({},p,{tilt:oneDegree,tiltAzimuth:37})),efficiency(Object.assign({},p,{tilt:oneDegree})));
+      var combined=Object.assign({},p,{offsetR:2,gap:50,tilt:oneDegree});close("完整旋轉不變性",efficiency(Object.assign({},combined,{offsetAzimuth:37,tiltAzimuth:37})),efficiency(combined));
+      var ellipse=Object.assign({},paper,{gap:17,tilt:oneDegree,offsetAzimuth:37,tiltAzimuth:64}),profile=radialProfile(ellipse,joint(ellipse,0,0)),bound=profile.opt+Math.sqrt(D1/(2*profile.beta));
+      close("有號位移徑向容差",efficiency(Object.assign({},ellipse,{offsetR:bound}))/efficiency(Object.assign({},ellipse,{offsetR:profile.opt})),Math.pow(10,-.1));
+      close("位移傾角交互項",radialProfile(combined,joint(combined,0,0)).opt,combined.gap*combined.tilt/2);
+      close("單項位移 1 dB",efficiency(Object.assign({},p,{offsetR:radialLimit(p,D1)})),Math.pow(10,-.1));
+      close("單項角度半功率",efficiency(Object.assign({},p,{tilt:angularLimit(p,D3)})),.5);
+      var checks=tests.map(function(t){return t.pass;}),passed=checks.filter(Boolean).length;
+      out.qaStatus.textContent="內建數值核對 "+passed+"/"+checks.length+"：模場、三方向單項容差、有號位移、弧度轉換、橢圓模場與完整交互項。";out.qaStatus.style.color=passed===checks.length?"#257166":"#ad2b2b";
+      window.fiberCouplingModel={axis:axis,joint:joint,efficiency:efficiency,radialOffset:radialOffset,tiltComponents:tiltComponents,radialProfile:radialProfile,radialLimit:radialLimit,angularLimit:angularLimit,axialOnly:axialOnly,axialLimit:axialLimit,defaults:defaults,selfCheck:checks,qa:tests};
     }
-    ids.forEach(function(id){el[id].addEventListener("input",function(){
-      document.querySelectorAll(".preset").forEach(function(b){b.setAttribute("aria-pressed","false");});
-      update();
-    });});
+    ids.forEach(function(id){el[id].addEventListener("input",function(){document.querySelectorAll(".preset").forEach(function(b){b.setAttribute("aria-pressed","false");});update();});});
     document.querySelectorAll(".preset").forEach(function(b){b.addEventListener("click",function(){setPreset(b.dataset.preset);});});
-    window.addEventListener("resize",update);
-    selfCheck();
-    update();
+    window.addEventListener("resize",update);selfCheck();update();
   })();
   </script>
 </body>

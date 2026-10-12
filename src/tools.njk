@@ -1,7 +1,7 @@
 ---
 layout: base.njk
 title: 個人小工具
-description: jimjcy 的個人小工具：比較退休年齡與資產變化，模擬光纖耦合效率與 FAU 陣列對位容差。
+description: jimjcy 的個人小工具：比較退休年齡與資產變化，模擬光纖耦合效率與位移、角度、軸向間距的對位容差。
 navSection: tools
 permalink: /tools/index.html
 ---
@@ -27,8 +27,8 @@ permalink: /tools/index.html
     <div class="tool-copy">
       <p class="eyebrow">光學與對位</p>
       <h2>光纖耦合效率模擬器</h2>
-      <p>調整高斯模場、橫向位移、傾角與軸向間距，觀察耦合效率與對位容差，再比較 FAU 陣列節距差及轉角造成的逐通道損失。</p>
-      <ul class="tool-features"><li>四組預設情境</li><li>位移與間距曲線</li><li>FAU 逐通道效率</li></ul>
+      <p>調整高斯模場與對位參數，分別觀察位移、角度及 z offset 的耦合效率與容差，並查閱基準效率到完整重疊模型的公式統整。</p>
+      <ul class="tool-features"><li>三方向容差曲線</li><li>角度以弧度分析</li><li>完整公式統整</li></ul>
       <a class="tool-launch" href="{{ '/tools/fiber-coupling/' | url }}">開啟光纖模擬器 <span aria-hidden="true">↗</span></a>
       <p class="tool-note">採理想高斯光場模型；公式、資料來源與適用邊界均列在工具內。</p>
     </div>
