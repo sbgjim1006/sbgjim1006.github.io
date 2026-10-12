@@ -354,11 +354,12 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--blue); outl
 .footer-socials { display: flex; gap: 22px; padding-top: 7px; }
 .footer-meta { text-align: right; }
 .motion-enabled .topic-card, .motion-enabled .home-portals > a { transition: background-color .2s ease; }
-.tools-collection { padding-bottom: 75px; }
+.tools-collection { display: grid; gap: 28px; padding-bottom: 75px; }
 .tool-feature { display: grid; grid-template-columns: minmax(220px, .75fr) minmax(0, 1.5fr); border: 1px solid var(--line); }
 .tool-emblem { background: #edf2ea; color: #355a34; padding: 32px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; gap: 26px; }
 .tool-emblem span { font-size: 11px; letter-spacing: .12em; }
 .tool-emblem svg { width: 120px; height: 120px; }
+.tool-emblem-optics { background: #e9f2f5; color: #145267; }
 .tool-copy { padding: 40px 44px; }
 .tool-copy h2 { font-size: 30px; font-weight: 500; margin: 12px 0 18px; }
 .tool-copy > p:not(.eyebrow) { color: var(--muted); font-size: 16px; max-width: 35em; }

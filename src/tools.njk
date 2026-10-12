@@ -1,7 +1,7 @@
 ---
 layout: base.njk
 title: 個人小工具
-description: jimjcy 的個人小工具：用退休計畫模擬器比較退休年齡與資產變化。
+description: jimjcy 的個人小工具：比較退休年齡與資產變化，模擬光纖耦合效率與 FAU 陣列對位容差。
 navSection: tools
 permalink: /tools/index.html
 ---
@@ -20,6 +20,17 @@ permalink: /tools/index.html
       <ul class="tool-features"><li>兩種退休情境</li><li>資產走勢圖</li><li>名目與實質幣值</li></ul>
       <a class="tool-launch" href="{{ '/tools/retirement/' | url }}">開啟退休模擬器 <span aria-hidden="true">↗</span></a>
       <p class="tool-note">參數會記在目前瀏覽器，方便下次接著調整。</p>
+    </div>
+  </article>
+  <article class="tool-feature">
+    <div class="tool-emblem tool-emblem-optics" aria-hidden="true"><span>02 / PHOTONICS</span><svg viewBox="0 0 120 120" fill="none"><rect x="12" y="33" width="25" height="54" rx="5" stroke="currentColor" stroke-width="2"/><rect x="83" y="33" width="25" height="54" rx="5" stroke="currentColor" stroke-width="2"/><path d="M4 45h33m-33 15h33M4 75h33m46-30h33M83 60h33M83 75h33" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M37 45c18 0 28 30 46 30M37 60h46M37 75c18 0 28-30 46-30" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/><path d="M60 15v13m-5-8 5-5 5 5M60 105V92m-5 8 5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>FIBER COUPLING</span></div>
+    <div class="tool-copy">
+      <p class="eyebrow">光學與對位</p>
+      <h2>光纖耦合效率模擬器</h2>
+      <p>調整高斯模場、橫向位移、傾角與軸向間距，觀察耦合效率與對位容差，再比較 FAU 陣列節距差及轉角造成的逐通道損失。</p>
+      <ul class="tool-features"><li>四組預設情境</li><li>位移與間距曲線</li><li>FAU 逐通道效率</li></ul>
+      <a class="tool-launch" href="{{ '/tools/fiber-coupling/' | url }}">開啟光纖模擬器 <span aria-hidden="true">↗</span></a>
+      <p class="tool-note">採理想高斯光場模型；公式、資料來源與適用邊界均列在工具內。</p>
     </div>
   </article>
 </section>

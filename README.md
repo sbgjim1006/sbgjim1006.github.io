@@ -26,6 +26,7 @@
 | 正式文章 | `src/posts/*.md` |
 | 小工具列表 | `src/tools.njk` |
 | 退休模擬器 | `src/tools/retirement/index.html` |
+| 光纖耦合效率模擬器 | `src/tools/fiber-coupling/index.html` |
 | 圖片、樣式與動畫 | `src/assets/` |
 
 `_site/` 是建置結果，請編輯 `src/` 裡的來源檔。

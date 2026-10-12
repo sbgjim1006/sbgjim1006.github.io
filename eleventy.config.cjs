@@ -21,6 +21,7 @@ module.exports = function(config) {
   config.addPassthroughCopy({ 'src/assets': 'assets' });
   config.addPassthroughCopy({ 'src/.nojekyll': '.nojekyll' });
   config.addPassthroughCopy({ 'src/tools/retirement': 'tools/retirement' });
+  config.addPassthroughCopy({ 'src/tools/fiber-coupling': 'tools/fiber-coupling' });
   config.addWatchTarget('src/assets');
   const md = markdownIt({ html: true, linkify: true, typographer: false });
   md.core.ruler.push('heading_ids', state => {
