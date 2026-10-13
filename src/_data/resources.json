@@ -18,6 +18,7 @@
   { "name": "Google DeepMind Publications", "url": "https://deepmind.google/research/publications/", "host": "deepmind.google", "group": "Other", "type": "產業研究團隊", "description": "閱讀團隊公開的 AI 方法、模型評估與科學應用論文。" },
   { "name": "Stanford HAI · AI Index", "url": "https://hai.stanford.edu/ai-index", "host": "hai.stanford.edu", "group": "Other", "type": "大學研究機構", "description": "透過年度報告觀察 AI 技術能力、採用情況與社會影響。" },
   { "name": "Phys.org", "url": "https://phys.org/", "host": "phys.org", "group": "AI 與科技趨勢", "type": "科學新聞網站", "description": "瀏覽物理、天文、生物、材料與科技等領域的研究新聞。" },
+  { "name": "Parity · 遙望集", "url": "https://parity.fund/zh/telescope-editions/", "host": "parity.fund", "group": "AI 與科技趨勢", "type": "前沿科技研究與徵稿計畫", "description": "Parity 的研究寫作資助與徵稿計畫，關注區塊鏈、AI、量子計算、太空及能源等前沿議題。" },
   { "name": "OECD · AI and Work", "url": "https://www.oecd.org/en/topics/ai-and-work.html", "host": "oecd.org", "group": "Other", "type": "國際組織", "description": "了解 AI 與工作、技能、就業及生產力的關係。" },
   { "name": "DARPA Programs", "url": "https://www.darpa.mil/research/programs", "host": "darpa.mil", "group": "Other", "type": "官方機構", "description": "從公開研究計畫理解國防科技的目標與研究方向。" },
   { "name": "Anduril", "url": "https://www.anduril.com/", "host": "anduril.com", "group": "軍工與前沿技術", "type": "國防科技公司", "description": "追蹤自主系統與國防科技的產品及公司公告。" },
